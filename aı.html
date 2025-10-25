@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usta AI Asistan</title>
+    
+    <style>
+        :root {
+            --bg-deep: #0f0f0f;      
+            --bg-card: #1c1c1c;      
+            --text-light: #e0e0e0;   
+            --color-accent: #00bcd4; 
+            --color-mic: #f44336;    
+            --color-user: #2a2a2a;   
+            --color-ai: #00bcd4;     
+            --text-ai: #1c1c1c;      
+        }
+
+        * {
+            box-sizing: border-box; 
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 10px 8px; 
+            background-color: var(--bg-deep); 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            color: var(--text-light);
+            margin: 0;
+            overflow-x: hidden; 
+        }
+        
+        #chat-container { 
+            width: 100%;
+            max-width: 100%;
+            background-color: var(--bg-card); 
+            border-radius: 12px; 
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 98vh;
+            border: 1px solid #333;
+        }
+        
+        h1 {
+            background-color: #121212;
+            color: var(--color-accent); 
+            padding: 12px 8px; 
+            margin: 0;
+            font-size: 1.2em; 
+            text-align: center;
+            border-bottom: 1px solid #222;
+            letter-spacing: 0.5px;
+        }
+        
+        #chat-box {
+            flex: 1;
+            padding: 8px; 
+            overflow-y: auto;
+            background-color: var(--bg-deep);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 85%;
+            line-height: 1.4;
+            word-wrap: break-word;
+            font-size: 0.9em;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background-color: var(--color-user);
+            margin-left: auto;
+            margin-right: 5px;
+            color: var(--text-light);
+            border-bottom-right-radius: 5px;
+        }
+        
+        .ai-message {
+            background-color: var(--color-ai);
+            margin-right: auto;
+            margin-left: 5px;
+            color: var(--text-ai);
+            border-bottom-left-radius: 5px;
+            font-weight: 500;
+        }
+        
+        #input-area {
+            display: flex;
+            padding: 10px 8px;
+            border-top: 1px solid #333;
+            gap: 6px; 
+            background: var(--bg-card);
+            flex-shrink: 0;
+        }
+        
+        #questionInput { 
+            flex: 1;
+            padding: 8px 12px; 
+            border: 1px solid #444; 
+            border-radius: 20px; 
+            font-size: 0.9em;
+            background-color: #2a2a2a;
+            color: var(--text-light);
+            min-width: 0; 
+        }
+        
+        #askButton, #micButton { 
+            padding: 8px 12px; 
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: background-color 0.3s;
+            color: var(--text-light);
+            font-size: 0.85em;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        #askButton { 
+            background-color: var(--color-accent); 
+            color: var(--bg-deep);
+        }
+        
+        #askButton:hover:not(:disabled) { background-color: #00a4b8; }
+        
+        #micButton { 
+            background-color: var(--color-mic); 
+            font-size: 0.9em;
+            padding: 8px 10px;
+        }
+        
+        #micButton:hover:not(:disabled) { background-color: #d32f2f; }
+        
+        button:disabled {
+            background-color: #555 !important;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        #status { 
+            text-align: center;
+            font-size: 0.8em;
+            color: #ffc107;
+            padding: 4px 8px;
+            min-height: 18px;
+            word-break: break-word;
+            background: var(--bg-card);
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            #chat-container { border-radius: 8px; height: 99vh; }
+            h1 { padding: 10px 6px; font-size: 1.1em; }
+            #chat-box { padding: 6px; }
+            .message { padding: 6px 10px; font-size: 0.85em; max-width: 90%; }
+            #input-area { padding: 8px 6px; gap: 4px; }
+            #questionInput { padding: 6px 10px; font-size: 0.85em; }
+            #askButton, #micButton { padding: 6px 10px; font-size: 0.8em; }
+            #status { font-size: 0.75em; padding: 3px 6px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <h1>⭐ USTA AI</h1> 
+    
+    <div id="chat-box">
+        <div class="message ai-message">Merhaba! Ben Usta AI. Yapay Zeka Destekli Dijital İçerik Asistanınızım. Nasıl yardımcı olabilirim?</div>
+    </div>
+    
+    <p id="status">Hazır.</p>
+    
+    <div id="input-area">
+        <input type="text" id="questionInput" placeholder="Sorunuzu yazın veya mikrofonu kullanın...">
+        <button id="micButton">🎤</button>
+        <button id="askButton">Gönder</button>
+    </div>
+</div>
+
+<script>
+    const GEMINI_API_KEY = "apı kodunuz buraya"; 
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const chatBox = document.getElementById('chat-box');
+    const questionInput = document.getElementById('questionInput');
+    const statusMessage = document.getElementById('status');
+    const askButton = document.getElementById('askButton');
+    const micButton = document.getElementById('micButton');
+
+    let isSpeaking = false; 
+
+    window.addEventListener('load', function() {
+        questionInput.focus();
+        scrollToBottom();
+    });
+
+    questionInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendPrompt();
+    });
+
+    askButton.addEventListener('click', sendPrompt);
+
+    function addMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender === 'user' ? 'user-message' : 'ai-message'}`;
+        messageDiv.textContent = text;
+        chatBox.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        setTimeout(() => {
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        }, 100);
+    }
+
+    function stopSpeaking() {
+        if ('speechSynthesis' in window && window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+        }
+    }
+    
+    function removeEmojis(text) {
+        return text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+    }
+
+    // AI kelimesini Yapay Zeka'ya çeviren fonksiyon
+    function replaceAIWithTurkish(text) {
+        return text
+            .replace(/\bAI\b/gi, 'Yapay Zeka')
+            .replace(/\bArtificial Intelligence\b/gi, 'Yapay Zeka')
+            .replace(/\bA\.I\.\b/gi, 'Yapay Zeka');
+    }
+
+    function limitToMaxEightSentences(text) {
+        const sentenceRegex = /[^.!?]+[.!?]+/g;
+        const sentences = text.match(sentenceRegex) || [text];
+        
+        if (sentences.length <= 8) {
+            return text;
+        }
+        
+        const limitedSentences = sentences.slice(0, 8);
+        let result = limitedSentences.join(' ').trim();
+        
+        const lastSentence = limitedSentences[limitedSentences.length - 1];
+        if (!lastSentence.match(/[.!?]$/) && !result.endsWith('...')) {
+            result += '...';
+        }
+        
+        return result;
+    }
+
+    function speakResponse(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'tr-TR'; 
+            isSpeaking = true;
+            utterance.onend = () => { isSpeaking = false; };
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    async function sendPrompt(promptText = questionInput.value) {
+        if (!promptText.trim()) return;
+        
+        stopSpeaking(); 
+        addMessage(promptText, 'user');
+        questionInput.value = '';
+        
+        askButton.disabled = true;
+        micButton.disabled = true;
+        statusMessage.textContent = "Cevap hazırlanıyor...";
+
+        const messages = [];
+        const allMessages = chatBox.querySelectorAll('.message');
+        
+        for (let i = 1; i < allMessages.length; i++) {
+            const element = allMessages[i];
+            const isUser = element.classList.contains('user-message');
+            messages.push({
+                role: isUser ? "user" : "model",
+                parts: [{ text: element.textContent }]
+            });
+        }
+        messages.push({ role: "user", parts: [{ text: promptText }] });
+
+        const payload = { contents: messages };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`API Hatası: ${response.status}`);
+            }
+
+            const data = await response.json();
+            let geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; 
+
+            if (!geminiResponse) {
+                addMessage("Model yanıt veremedi. Lütfen farklı bir soru deneyin.", 'ai');
+                statusMessage.textContent = "Hata: Model yanıtı alınamadı.";
+                return;
+            }
+            
+            let cleanResponse = removeEmojis(geminiResponse);
+            
+            // YENİ: AI kelimelerini Yapay Zeka'ya çevir
+            cleanResponse = replaceAIWithTurkish(cleanResponse);
+            
+            const summarizedResponse = limitToMaxEightSentences(cleanResponse);
+            
+            addMessage(summarizedResponse, 'ai');
+            statusMessage.textContent = "Hazır.";
+            speakResponse(summarizedResponse);
+
+        } catch (error) {
+            console.error("Hata:", error);
+            statusMessage.textContent = `Hata: ${error.message}`;
+            addMessage("İsteğinizi işleyemedim. Lütfen tekrar deneyin.", 'ai');
+        } finally {
+            askButton.disabled = false;
+            micButton.disabled = false;
+            questionInput.focus();
+        }
+    }
+    
+    micButton.addEventListener('click', () => {
+        stopSpeaking();
+        
+        if (!('webkitSpeechRecognition' in window)) {
+            statusMessage.textContent = "Hata: Tarayıcınız ses tanımayı desteklemiyor.";
+            return;
+        }
+
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'tr-TR'; 
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        
+        statusMessage.textContent = "Dinleniyor... Konuşun.";
+        askButton.disabled = true;
+        micButton.disabled = true; 
+        micButton.style.backgroundColor = '#00a4b8'; 
+
+        recognition.onresult = (event) => {
+            const speechResult = event.results[0][0].transcript;
+            questionInput.value = speechResult;
+            statusMessage.textContent = "Algılandı: " + speechResult;
+            micButton.style.backgroundColor = '';
+            micButton.disabled = false;
+            recognition.stop();
+            sendPrompt(speechResult); 
+        };
+
+        recognition.onerror = (event) => {
+            statusMessage.textContent = `Ses tanıma hatası: ${event.error}`;
+            micButton.style.backgroundColor = '';
+            micButton.disabled = false;
+            askButton.disabled = false;
+        };
+
+        recognition.onend = () => {
+            micButton.style.backgroundColor = '';
+            micButton.disabled = false;
+            askButton.disabled = false;
+            statusMessage.textContent = "Hazır.";
+        };
+
+        try {
+            recognition.start();
+        } catch(e) {
+            statusMessage.textContent = "Hata: Zaten dinleme çalışıyor.";
+            micButton.style.backgroundColor = '';
+            micButton.disabled = false;
+            askButton.disabled = false;
+        }
+    });
+
+</script>
+</body>
+</html>

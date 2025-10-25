@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usta AI</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            background: #000000;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .letter-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+            z-index: 10;
+            position: relative;
+        }
+        
+        .letter {
+            font-size: 8em;
+            font-weight: 900;
+            color: #ff6b35;
+            opacity: 0;
+            transform: scale(3);
+            text-shadow: 0 0 30px rgba(255, 107, 53, 0.8);
+            animation: letterAppear 0.8s ease-out forwards;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+        
+        @keyframes letterAppear {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .space {
+            width: 40px;
+        }
+        
+        /* EL YAZISI STİLİ */
+        .handwriting-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            z-index: 10;
+            position: relative;
+            transform: translateY(-20px);
+        }
+        
+        .handwriting-char {
+            font-size: 2.5em;
+            color: #ffffff;
+            font-family: 'Brush Script MT', cursive;
+            opacity: 0;
+            transform: translateY(10px);
+            font-style: italic;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: charAppear 0.3s ease-out forwards;
+            margin: 0 3px;
+        }
+        
+        @keyframes charAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* AKTİVE ET BUTONU */
+        .activate-btn {
+            background: linear-gradient(135deg, #ff6b35, #ff8e53);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: btnAppear 0.5s ease-out 5s forwards;
+            z-index: 10;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .activate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.8);
+        }
+        
+        @keyframes btnAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* KESKİN BEYAZ GEÇİŞ EFEKTİ */
+        .screen-divider {
+            position: absolute;
+            top: 0;
+            left: -10px;
+            width: 10px;
+            height: 100%;
+            background: #ffffff;
+            box-shadow: 
+                0 0 0 5px #ffffff,
+                0 0 20px 5px rgba(255, 255, 255, 0.8);
+            z-index: 5;
+        }
+        
+        .screen-divider.active {
+            animation: screenDivide 2s ease-in-out forwards;
+        }
+        
+        @keyframes screenDivide {
+            0% { 
+                left: -10px;
+                box-shadow: 
+                    0 0 0 5px #ffffff,
+                    0 0 20px 5px rgba(255, 255, 255, 0.8);
+            }
+            100% { 
+                left: 100%;
+                box-shadow: 
+                    0 0 0 5px #ffffff,
+                    0 0 20px 5px rgba(255, 255, 255, 0.8);
+            }
+        }
+        
+        /* BEYAZ TARAF */
+        .white-side {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background: #ffffff;
+            z-index: 4;
+        }
+        
+        .white-side.active {
+            animation: whiteExpand 2s ease-in-out forwards;
+        }
+        
+        @keyframes whiteExpand {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* YAZI SİLME MASKESİ */
+        .text-mask {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            z-index: 6;
+            animation: textMaskSlide 2s ease-in-out forwards;
+        }
+        
+        @keyframes textMaskSlide {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* YAZI KAYBOLMA ANİMASYONU */
+        .fade-out {
+            animation: fadeOut 0.5s ease-in forwards;
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        /* SES EFEKTİ CONTAINER - EMOJİ YERİNE */
+        .audio-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            opacity: 0;
+            display: none;
+            width: 500px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .centered-wave {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 120px;
+        }
+
+        .centered-bar {
+            width: 6px;
+            background: #1a1a1a;
+            border-radius: 3px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        /* KARMA KARIŞIK BOY DAĞILIMI - SOLDA VE SAĞDA KISA */
+        .centered-bar:nth-child(1) { height: 18px; }
+        .centered-bar:nth-child(2) { height: 25px; }
+        .centered-bar:nth-child(3) { height: 68px; }
+        .centered-bar:nth-child(4) { height: 42px; }
+        .centered-bar:nth-child(5) { height: 91px; }
+        .centered-bar:nth-child(6) { height: 76px; }
+        .centered-bar:nth-child(7) { height: 55px; }
+        .centered-bar:nth-child(8) { height: 88px; }
+        .centered-bar:nth-child(9) { height: 63px; }
+        .centered-bar:nth-child(10) { height: 32px; }
+        .centered-bar:nth-child(11) { height: 22px; }
+        .centered-bar:nth-child(12) { height: 15px; }
+
+        /* HAREKETLİ DURUM */
+        .centered-bar.moving {
+            animation: fastWave 0.3s ease-in-out infinite alternate;
+        }
+
+        /* DAHA HIZLI ANİMASYON */
+        @keyframes fastWave {
+            0% { 
+                transform: scaleY(1);
+                opacity: 0.7;
+            }
+            100% { 
+                transform: scaleY(1.8);
+                opacity: 1;
+            }
+        }
+
+        /* KARMA KARIŞIK ANİMASYON GECİKMELERİ */
+        .centered-bar.moving:nth-child(1) { animation-delay: 0.02s; }
+        .centered-bar.moving:nth-child(2) { animation-delay: 0.05s; }
+        .centered-bar.moving:nth-child(3) { animation-delay: 0.2s; }
+        .centered-bar.moving:nth-child(4) { animation-delay: 0.1s; }
+        .centered-bar.moving:nth-child(5) { animation-delay: 0.3s; }
+        .centered-bar.moving:nth-child(6) { animation-delay: 0.25s; }
+        .centered-bar.moving:nth-child(7) { animation-delay: 0.15s; }
+        .centered-bar.moving:nth-child(8) { animation-delay: 0.28s; }
+        .centered-bar.moving:nth-child(9) { animation-delay: 0.18s; }
+        .centered-bar.moving:nth-child(10) { animation-delay: 0.08s; }
+        .centered-bar.moving:nth-child(11) { animation-delay: 0.04s; }
+        .centered-bar.moving:nth-child(12) { animation-delay: 0s; }
+
+        /* SES EFEKTİ YUKARI SAĞ KÖŞE - KÜÇÜK */
+        .audio-top-right {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            z-index: 25;
+            opacity: 0;
+            display: none;
+            width: 120px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .mini-bar {
+            width: 3px;
+            background: #1a1a1a;
+            border-radius: 1px;
+            animation: miniWave 0.4s ease-in-out infinite alternate;
+        }
+
+        /* MİNİ BAR BOYLARI */
+        .mini-bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+        .mini-bar:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+        .mini-bar:nth-child(3) { height: 6px; animation-delay: 0.05s; }
+        .mini-bar:nth-child(4) { height: 10px; animation-delay: 0.15s; }
+        .mini-bar:nth-child(5) { height: 14px; animation-delay: 0.2s; }
+        .mini-bar:nth-child(6) { height: 8px; animation-delay: 0.1s; }
+
+        @keyframes miniWave {
+            0% { 
+                transform: scaleY(1);
+                opacity: 0.6;
+            }
+            100% { 
+                transform: scaleY(1.5);
+                opacity: 1;
+            }
+        }
+
+        /* MENÜ KUTULARI - YENİ */
+        .menu-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            display: none;
+            opacity: 0;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .menu-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 20px 30px;
+            margin: 10px 0;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.4em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: boxAppear 0.6s ease-out forwards;
+        }
+
+        .menu-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        @keyframes boxAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* GERİ BUTONU */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            z-index: 30;
+            display: none;
+            opacity: 0;
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: white;
+            transform: translateX(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .back-button.show {
+            display: block;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* İNTROYU GEÇ BUTONU - YENİ EKLENDİ */
+        .skip-intro-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 35;
+            display: none;
+            opacity: 0;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .skip-intro-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .skip-intro-btn.show {
+            display: block;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* İÇERİK EKRANI - YENİ DÜZEN */
+        .content-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            display: none;
+            opacity: 0;
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .content-text {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* KUTUCUKLAR ALT ALTA - YENİ DÜZEN */
+        .content-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* TÜM KUTUCUKLAR AYNI RENK - YENİ */
+        .content-option {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .content-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        /* ÜRÜN SEÇİMİ BUTONU - AYNI RENK */
+        .product-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 15px;
+        }
+
+        .product-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        /* İLETİŞİM BUTONLARI - YENİ */
+        .contact-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .instagram-btn {
+            background: linear-gradient(135deg, #E1306C, #C13584);
+            color: white;
+        }
+
+        .phone-btn {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+        }
+
+        .whatsapp-btn {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+        }
+
+        .contact-icon {
+            font-size: 1.4em;
+        }
+    </style>
+</head>
+<body>
+    <!-- BEYAZ TARAF -->
+    <div class="white-side" id="whiteSide"></div>
+    
+    <!-- KESKİN BEYAZ ÇİZGİ -->
+    <div class="screen-divider" id="screenDivider"></div>
+
+    <div class="letter-container" id="letterContainer">
+        <!-- Harfler JavaScript ile eklenecek -->
+    </div>
+    
+    <!-- EL YAZISI STİLİNDE YAZI -->
+    <div class="handwriting-container" id="handwritingContainer">
+        <!-- Harfler JavaScript ile tek tek eklenecek -->
+    </div>
+
+    <!-- AKTİVE ET BUTONU -->
+    <button class="activate-btn" id="activateBtn" onclick="activateSystem()">
+        Sistemi Aktive Et
+    </button>
+
+    <!-- İNTROYU GEÇ BUTONU - YENİ -->
+    <button class="skip-intro-btn" id="skipIntroBtn" onclick="skipIntro()">İntroyu Geç</button>
+
+    <!-- SES EFEKTİ MERKEZ - GİZLİ -->
+    <div class="audio-container" id="audioContainer">
+        <div class="centered-wave">
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+            <div class="centered-bar"></div>
+        </div>
+    </div>
+
+    <!-- SES EFEKTİ YUKARI SAĞ KÜÇÜK - GİZLİ -->
+    <div class="audio-top-right" id="audioTopRight">
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+    </div>
+
+    <!-- GERİ BUTONU - GİZLİ -->
+    <button class="back-button" id="backButton" onclick="goBack()">← Geri</button>
+
+    <!-- ANA MENÜ KUTULARI - GİZLİ -->
+    <div class="menu-container" id="mainMenuContainer">
+        <div class="menu-box" style="animation-delay: 0.1s" data-category="gövde">GÖVDE</div>
+        <div class="menu-box" style="animation-delay: 0.2s" data-category="kapaklar">KAPAKLAR</div>
+        <div class="menu-box" style="animation-delay: 0.3s" data-category="aksesuarlar">AKSESUARLAR</div>
+        <div class="menu-box" style="animation-delay: 0.4s" data-category="aydinlatma">AYDINLATMA</div>
+        <div class="menu-box" style="animation-delay: 0.5s" data-category="cam-yuzeyler">CAM YÜZEYLER</div>
+        <div class="menu-box" style="animation-delay: 0.6s" data-category="ayna-kaplamalari">AYNA KAPLAMALARI</div>
+        <div class="menu-box" style="animation-delay: 0.7s" data-category="kumas-dokulari">KUMAŞ DOKULARI</div>
+        <div class="menu-box" style="animation-delay: 0.8s" data-category="diger-detaylar">DİĞER DETAYLAR</div>
+    </div>
+
+    <!-- İÇERİK EKRANI - YENİ -->
+    <div class="content-screen" id="contentScreen">
+        <div class="content-text" id="contentText"></div>
+        <div class="content-options" id="contentOptions"></div>
+        <!-- ÜRÜN SEÇİMİ BUTONU -->
+        <button class="product-btn" id="productButton" onclick="showProductSelection()" style="display: none;">ÜRÜN SEÇİMİ</button>
+        <!-- İLETİŞİM BUTONLARI -->
+        <div class="contact-buttons" id="contactButtons" style="display: none;">
+            <button class="contact-btn instagram-btn" onclick="openInstagram()">
+                <span class="contact-icon">📷</span>
+                Instagram'da Takip Et
+            </button>
+            <button class="contact-btn phone-btn" onclick="callPhone()">
+                <span class="contact-icon">📞</span>
+                Telefonla Ara
+            </button>
+            <button class="contact-btn whatsapp-btn" onclick="openWhatsApp()">
+                <span class="contact-icon">💬</span>
+                WhatsApp'tan Yaz
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let audioContext = null;
+        let currentMenu = 'main';
+        let menuHistory = [];
+        let currentSpeech = null;
+        let introSkipped = false;
+        let currentCategory = '';
+        let selectedProduct = '';
+
+        // AYARLAR - SİZİN BİLGİLERİNİZ
+        const contactSettings = {
+            instagramUrl: "https://www.instagram.com/explore/locations/684792588361496/usta-ahsap-urunleri/recent/",
+            phoneNumber: "+905340550450",
+            whatsappNumber: "+905340550450",
+            whatsappMessage: "Merhaba, Usta AI üzerinden iletişime geçiyorum. Mobilya seçimim hakkında bilgi almak istiyorum."
+        };
+
+        // TAM SEÇİM AĞACI VERİLERİ
+        const contentData = {
+            'gövde': {
+                text: "Harika. Mobilyanın omurgasını oluşturan gövde, tüm parçaların güvenle birleşmesini sağlar. Sağlam bir gövde, uzun ömürlü kullanım ve kusursuz görünüm demektir.Bu gövdede genellikle iki malzeme kullanılır: Ham MDF ve MDF Lam. Ham MDF boyanabilme özelliği sayesinde daha esnek, kişiselleştirmeye açık ve sanatçının fırçasını bekleyen bir yüzey gibiyken; MDF Lam pratikliği, hazır estetiği ve seri kullanım avantajıyla öne çıkar. Biri özgürlüğün, diğeri hazır şıklığın temsilcisidir.Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'ham-mdf', text: 'HAM MDF' },
+                    { id: 'mdf-lam', text: 'MDF LAM' }
+                ]
+            },
+            'ham-mdf': {
+                text: "Ham MDF, mobilya gövdesi üretiminde en çok tercih edilen malzemelerden biridir.Yoğun lif yapısı ve homojen dokusu sayesinde pürüzsüz, sağlam ve kolay işlenebilir bir yüzey sunar.Bu özelliği, özellikle boya ve kaplama uygulamaları için ideal bir zemin hâline getirir.Ham MDF, yüzey bitişine göre iki temel seçenekte değerlendirilir:Mat uygulama ve Parlak uygulama.Bu noktada tercih tamamen sizin kullanım tarzınıza bağlıdır.Ürününüzü mat mı yoksa parlak yüzeyli olarak mı görmek istersiniz.Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'mat', text: 'Mat' },
+                    { id: 'parlak', text: 'Parlak' }
+                ]
+            },
+            'mat': {
+                text: "Mantıklı bir tercih yaptınız.Mat yüzeyler, günümüz mobilya tasarımında en çok aranan estetiklerden biridir.Işığı yansıtmayan yapısı sayesinde, sade ve dingin bir atmosfer oluşturur.Yüzeyin yumuşak dokusu, hem göze hem de ele sıcak bir his verir. Kullanım açısından mat yüzeylerin belirgin avantajları şunlardır:Parmak izi ve küçük çizikleri parlak yüzeylere göre çok daha az belli eder.Işık yansımalarını azaltarak daha homojen bir renk algısı sağlar.Bu noktada dilerseniz, mat yüzey uygulamalarında kullanılan farklı boya tekniklerine geçebiliriz:Düz Lake, Klapalı Lake veya CNC İşlemeli Lake.Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'düz-lake', text: 'Düz Lake' },
+                    { id: 'klapalı-lake', text: 'Klapalı lake' },
+                    { id: 'cnc-işlemeli', text: 'CNC İşlemeli' }
+                ]
+            },
+            'düz-lake': {
+                text: "Düz Lake.Net, yalın ve zamansız bir tercih.Düz Lake; pürüzsüz bir zemin üzerine uygulanan mat boya sistemidir.Herhangi bir desen, kabartma veya çerçeve formu bulunmaz — bu da yüzeyin tamamen sade bir karaktere sahip olmasını ağlar.Uygulamada kullanılan boyalar genellikle Poliüretan veya akrilik esaslıdır ve yüksek kapatıcılık sunar.Bu tip yüzey, modern ve minimal çizgideki dolap, kapak veya panel uygulamaları için idealdir.Çünkü mat yapısı ışığı yansıtmaz, formu öne çıkarır ve ortamda görsel bütünlük sağlar.Avantajları:Pürüzsüz yüzey, çizgisel tasarımlarda mükemmel sonuç verir.Renk geçişleri ve tonlamalar homojen görünür.Bakımı kolaydır; nemli bezle silmek genellikle yeterlidir.Dikkat edilmesi gereken noktalar: Yüzey tamamen düz olduğu için uygulama kalitesi çok önemlidir; boya hataları kolayca fark edilir.Mat dokunun homojen kalması için üretim ortamında toz kontrolü yapılmalıdır. Şimdi sıra, bu yüzeyin hayat bulacağı ürünü seçmekte.Dilerseniz bu yüzeyi aşağıdaki ürün kategorilerinden birini seçerek yolculuğa devam edebiliriz.Devam etmek için lütfen birini tercih yapın",
+                options: [],
+                showProductButton: true
+            },
+            'klapalı-lake': {
+                text: "Bu teknik, modern sadeliği el yapımı bir detay inceliğiyle buluşturur. Yüzeydeki klapalar, ışığı yumuşak bir şekilde yakalayarak derinlik ve hareket katarken, mat lakın sakin ve zarif dokusunu bozmaz.Avantajları:Estetik Derinlik: Düz yüzeylerde oluşan tekdüzelikten kurtarır, ışık-gölge oyunlarıyla mekana dinamik bir karakter kazandırır.Dokunsal Keyif: Hem göze hem de ele hitap eden, gizli bir klavye veya tutamak işlevi de görebilen minimalist bir dokunuş sunar.Pratiklik: Parmak izi ve küçük çizikleri hem mat yüzey sayesinde hem de klapa gölgeleriyle mükemmel bir şekilde gizler.Dikkat Edilmesi Gerekenler:Temizlik: Klapa aralıklarının düzenli olarak hafif nemli bir bezle temizlenmesi önerilir.Kullanım Alanı: Özellikle dolap kapakları, panel ve pano yüzeylerinde son derece şık bir alternatiftir.ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'cnc-işlemeli': {
+                text: "CNC İşlemeli Lake: Sanatsal Derinlik ve Teknolojinin Buluşması CNC işlemeli lake, modern teknoloji ile el işçiliğinin eşsiz bir karışımıdır. Yüksek hassasiyetli CNC makineleriyle işlenen yüzeyler, mat lake boya ile tamamlanarak benzersiz bir doku ve derinlik kazanır. Avantajları: Kişiselleştirme Özgürlüğü: Her desen, motif veya geometrik form sizin hayal gücünüze göre şekillenebilir. Estetik Katman: Mat yüzey, CNC işlemelerin yarattığı gölge oyunlarını mükemmel bir şekilde vurgular ve mekana sanat eseri niteliği katar. Dayanıklılık: Lake boyanın koruyucu katmanı, işlemeli yüzeyleri uzun yıllar korur ve kolay temizlenir. Dikkat Edilmesi Gerekenler: Temizlik: Desen aralıklarının toz birikmemesi için düzenli bakım önerilir. Uygulama Alanı: Özellikle dekoratif paneller, kapaklar ve duvar uygulamalarında etkileyici bir tercihtir.ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'parlak': {
+                text: "Parlak Yüzeyler: Işığın ve Şıklığın Yansıması Parlak yüzeyler, mobilyanıza canlılık ve derinlik katar. Işığı yansıtarak mekanı daha aydınlık ve ferah gösterir. Yüksek parlaklık seviyesi, modern ve lüks bir estetik sunar. Kullanım açısından parlak yüzeylerin belirgin avantajları şunlardır: Işık yansıması sayesinde küçük mekanları optik olarak büyütür. Temizliği kolaydır; toz ve kirler kolayca fark edilir ve silinir. Bu noktada dilerseniz, parlak yüzey uygulamalarında kullanılan farklı boya tekniklerine geçebiliriz: Akrilik, Parlak Düz Lake, Parlak Klapalı Lake veya Parlak CNC İşlemeli Lake. Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'akrilik', text: 'Akrilik' },
+                    { id: 'parlak-düz-lake', text: 'Parlak Düz Lake' },
+                    { id: 'parlak-klapalı-lake', text: 'Parlak Klapalı Lake' },
+                    { id: 'parlak-cnc-işlemeli', text: 'Parlak CNC İşlemeli' }
+                ]
+            },
+            'akrilik': {
+                text: "Akrilik: Parlaklığın Modern Temsilcisi Akrilik, yüksek parlaklığı ve pürüzsüz yüzeyiyle öne çıkan bir malzemedir. Cam benzeri bir görünüm sunarken, dayanıklılığı ve hafifliğiyle pratik bir tercihtir. Avantajları: Yüksek Parlaklık: Işığı mükemmel yansıtır, mekana derinlik ve ferahlık katar. Darbe Dayanımı: Kırılmaya karşı dirençli, güvenli bir seçenektir. Kolay Bakım: Lekelere karşı dayanıklı, nemli bezle temizlenir. Dikkat Edilmesi Gerekenler: Çizilme Riski: Yumuşak yüzeylerde dikkatli kullanım önerilir. Uygulama Alanı: Mutfak tezgahları, kapaklar ve dekoratif paneller. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'parlak-düz-lake': {
+                text: "Parlak Düz Lake: Zamansız Parlaklığın Yalın Hali Parlak düz lake, pürüzsüz bir yüzey üzerine uygulanan parlak boya sistemidir. Herhangi bir desen veya kabartma olmadan, saf bir yansıma sunar. Avantajları: Lüks Görünüm: Yüksek parlaklık seviyesiyle premium bir hava katar. Genişleme Etkisi: Işık yansıması sayesinde mekanları büyütür. Kolay Temizlik: Lekeler kolayca silinir. Dikkat Edilmesi Gerekenler: Parmak İzi: Parlak yüzeylerde izler daha belirgin olabilir. Uygulama Alanı: Modern dolaplar ve paneller. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'parlak-klapalı-lake': {
+                text: "Parlak Klapalı Lake: Parlaklığın İnce Detaylı Hali Parlak klapalı lake, parlak yüzeylere eklenen klapalarla derinlik kazandırır. Avantajları: Dinamik Görünüm: Klapapalar ışık oyunları yaratır. Gizli Tutamak: Fonksiyonel ve estetik. Dayanıklılık: Parlak lake koruması. Dikkat Edilmesi Gerekenler: Temizlik: Klapa aralıkları düzenli bakım ister. Uygulama Alanı: Dolap kapakları. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'parlak-cnc-işlemeli': {
+                text: "Parlak CNC İşlemeli Lake: Parlaklığın Sanatsal Dokunuşu Parlak CNC işlemeli lake, parlak yüzeylere CNC ile eklenen desenlerle sanat katılır. Avantajları: Kişiselleştirme: Özel desenler. Parlak Etki: Desenler ışığı vurgular. Dayanıklılık: Lake koruması. Dikkat Edilmesi Gerekenler: Bakım: Desen aralıkları temizlenmeli. Uygulama Alanı: Dekoratif paneller. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'mdf-lam': {
+                text: "MDF Lam: Pratik Şıklığın Temsilcisi MDF Lam, hazır kaplama yüzeyiyle pratik ve estetik bir seçenektir. Avantajları: Hazır Estetik: Desen ve renk seçenekleri bol. Dayanıklılık: Çizilme ve aşınmaya karşı dirençli. Kolay Montaj: Seri üretim için ideal. Bu noktada dilerseniz, MDF Lam uygulamalarında kullanılan farklı tekniklere geçebiliriz: Düz MDF Lam veya Lak Panel. Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'düz-mdf-lam', text: 'Düz MDF Lam' },
+                    { id: 'lak-panel', text: 'Lak Panel' }
+                ]
+            },
+            'düz-mdf-lam': {
+                text: "Düz MDF Lam: Yalın ve Pratik Çözüm Düz MDF Lam, sade bir kaplama ile pratik kullanım sunar. Avantajları: Kolay Bakım: Temizliği basit. Geniş Renk Seçeneği: Farklı tonlar. Ekonomik: Maliyet etkili. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'lak-panel': {
+                text: "Lak Panel: Şıklığın Parlak Yansıması Lak panel, lak kaplama ile parlak ve dayanıklı yüzey sunar. Avantajları: Lüks Görünüm: Yüksek parlaklık. Koruma: Çizilme direnci. Estetik: Modern mekanlar için ideal. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'kapaklar': {
+                text: "Kapaklar: Mobilyanın Yüzü Kapaklar, mobilyanızın estetik ve fonksiyonel yüzüdür. İki ana malzeme: Ham MDF Kapak ve MDF Lam Kapak. Ham MDF Kapak kişiselleştirme özgürlüğü sunar, MDF Lam Kapak hazır şıklık. Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'ham-mdf-kapak', text: 'HAM MDF KAPAK' },
+                    { id: 'mdf-lam-kapak', text: 'MDF LAM KAPAK' }
+                ]
+            },
+            'ham-mdf-kapak': {
+                text: "Ham MDF Kapak: Esnek ve Kişiselleştirilebilir Ham MDF kapak, boya ve kaplama için ideal. Yüzey bitişi: Mat Kapak veya Parlak Kapak. Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'mat-kapak', text: 'Mat Kapak' },
+                    { id: 'parlak-kapak', text: 'Parlak Kapak' }
+                ]
+            },
+            'mat-kapak': {
+                text: "Mat Kapak: Sade ve Dingin Mat kapak, ışığı yansıtmaz, huzurlu atmosfer yaratır. Teknikler: Düz Lake Kapak, Klapalı Lake Kapak, CNC İşlemeli Kapak. Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'düz-lake-kapak', text: 'Düz Lake Kapak' },
+                    { id: 'klapalı-lake-kapak', text: 'Klapalı Lake Kapak' },
+                    { id: 'cnc-işlemeli-kapak', text: 'CNC İşlemeli Kapak' }
+                ]
+            },
+            'düz-lake-kapak': {
+                text: "Düz Lake Kapak: Yalın Şıklık Düz lake kapak, pürüzsüz mat yüzey sunar. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'klapalı-lake-kapak': {
+                text: "Klapalı Lake Kapak: Detaylı Zarafet Klapalı lake kapak, derinlik katar. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'cnc-işlemeli-kapak': {
+                text: "CNC İşlemeli Kapak: Sanatsal Dokunuş CNC işlemeli kapak, kişiselleştirilmiş desenler. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'parlak-kapak': {
+                text: "Parlak Kapak: Canlı ve Ferah Parlak kapak, ışığı yansıtır. Teknikler: Akrilik Kapak, Parlak Düz Lake Kapak, Parlak Klapalı Lake Kapak, Parlak CNC İşlemeli Kapak. Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'akrilik-kapak', text: 'Akrilik Kapak' },
+                    { id: 'parlak-düz-lake-kapak', text: 'Parlak Düz Lake Kapak' },
+                    { id: 'parlak-klapalı-lake-kapak', text: 'Parlak Klapalı Lake Kapak' },
+                    { id: 'parlak-cnc-işlemeli-kapak', text: 'Parlak CNC İşlemeli Kapak' }
+                ]
+            },
+            'akrilik-kapak': {
+                text: "Akrilik Kapak: Modern Parlaklık Akrilik kapak, cam benzeri görünüm. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'parlak-düz-lake-kapak': {
+                text: "Parlak Düz Lake Kapak: Saf Yansıma Parlak düz lake kapak, lüks görünüm. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'parlak-klapalı-lake-kapak': {
+                text: "Parlak Klapalı Lake Kapak: Dinamik Etki Parlak klapalı lake kapak, ışık oyunları. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'parlak-cnc-işlemeli-kapak': {
+                text: "Parlak CNC İşlemeli Kapak: Sanatlı Parlaklık Parlak CNC işlemeli kapak, özel desenler. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'mdf-lam-kapak': {
+                text: "MDF Lam Kapak: Pratik Estetik MDF Lam kapak, hazır kaplama. Teknikler: Düz MDF Lam Kapak, Lak Panel Kapak, Aluminyum Çerçeve Kapak. Devam etmek için lütfen birini tercih yapın",
+                options: [
+                    { id: 'düz-mdf-lam-kapak', text: 'Düz MDF Lam Kapak' },
+                    { id: 'lak-panel-kapak', text: 'Lak Panel Kapak' },
+                    { id: 'aluminyum-cerceve-kapak', text: 'Aluminyum Çerçeve Kapak' }
+                ]
+            },
+            'düz-mdf-lam-kapak': {
+                text: "Düz MDF Lam Kapak: Sade Pratiklik Düz MDF Lam kapak, kolay bakım. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'lak-panel-kapak': {
+                text: "Lak Panel Kapak: Parlak Şıklık Lak panel kapak, premium hava. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'aluminyum-cerceve-kapak': {
+                text: "Aluminyum Çerçeve Kapak: Modern Dayanıklılık Aluminyum çerçeve kapak, hafif ve güçlü. ürün seçiminden mi devam etmek istersiniz sekmeye tıklayın veya geri tuşuna basın",
+                options: [],
+                showProductButton: true
+            },
+            'aksesuarlar': {
+                text: "Mobilyanız bir senfoni ise, kapaklar ve gövde onun görkemli melodisi, aksesuarlar ise bu melodiyi unutulmaz kılan derin ve kusursuz armonileridir. Bu özenle seçilmiş detaylar, her dokunuşunuzda hissedilecek bir konfor, her gün güvenle kullanacağınız bir ömür ve mobilyanıza değer katacak bir ustalık işareti sunar.Kusursuz bir son dokunuş için, mühendisliğin zarafetle buluştuğu iki teknik altyapıyı keşfedin:Çekmece Rayları: Açılıp kapanmanın bir ritüele dönüştüğü, yüklerin sessizce taşındığı, akıcılığın ve dayanıklılığın şarkısını söyleyen dünya.Menteşeler: Kapaklarınızı neredeyse sihirli bir hafiflikle taşıyan, yıllar geçse de güveni ilk günkü gibi taze tutan, mobilyanızın görünmez ama en güçlü kahramanları.Bu sessiz mühendislik harikalarından hangisini inceleyerek, konforunuzu ve güvenliğinizi bir üst seviyeye taşımak istermisiniz yada bir üst menüye dönmek mi?",
+                options: [
+                    { id: 'çekmece-raylari', text: 'ÇEKMECE RAYLARI' },
+                    { id: 'menteşeler', text: 'MENTEŞELER' }
+                ]
+            },
+            'çekmece-raylari': {
+                text: "Çekmece rayları, bir mobilyanın en samimi ve en çok hissedilen mühendislik harikalarıdır. Onlar, bir çekmeceyi sadece kaydıran parçalar değil, her kullanımda size kusursuz bir akıcılık ve dayanıklılık hissi veren sessiz bir teknoloji sözleşmesidir. Kalite, burada en net hissedilir.İşte dünyanın önde gelen ray markaları ve onların vaat ettikleri:Samet: Yerli üretimin gururu. Türk tüketicisinin ihtiyaçlarını çok iyi bilen Samet, uygun fiyatlı ve kaliteli çözümlerle evinize değer katar.Blum: Sessizliğin ve akıcılığın efendisi. Yumuşak kapanma (soft-close) denince akla gelen ilk isim olan Blum, uzun ömür ve istikrar konusunda rakipsiz bir güven verir.Hafele: Yenilikçi çözümleri ve geniş ürün yelpazesiyle öne çıkar. Her türlü projeye ve ihtiyaca uygun, güvenilir ve fonksiyonel raylar sunar.Hettich: Alman mühendisliğinin sağlamlığını şık tasarımlarla buluşturur. Mükemmel yük kapasitesi ve dayanıklılık arayanlar için vazgeçilmez bir markadır.Bu markalardan birini seçerek konforunuzu garanti altına alabilir veya \"Geri\" diyerek aksesuar menüsüne dönüş yapabilirsiniz.",
+                options: [
+                    { id: 'samet', text: 'Samet' },
+                    { id: 'blum', text: 'Blum' },
+                    { id: 'hafele', text: 'Hafele' },
+                    { id: 'hettich', text: 'Hettich' }
+                ]
+            },
+            'samet': {
+                text: "Samet: Yerli Üretimin Akıllı DengesiSamet, Türk mobilya sektörünün ihtiyaçlarını en iyi anlayan ve bu doğrultuda uygun maliyetli, kaliteli çözümler sunan köklü bir markadır. Yerli üretimin avantajıyla hızlı tedarik ve geniş yedek parça imkanı sunar. Avantajları:Uygun Maliyet: Yurt içi üretim sayesinde, ithal rakiplerine kıyasla genellikle daha ekonomik çözümler sunar.Yerel Desteğe Uyum: Türk tüketicisinin kullanım alışkanlıklarına ve piyasa ihtiyaçlarına uygun ürün gamı.Hızlı Tedarik & Yedek Parça: Üretimin yerelde olması, tedarik süreçlerini hızlandırır ve yedek parça erişimini kolaylaştırır.Dilerseniz samet aksesuar sistemlerinden devam edelim yada diğer markalar hakkında bilgi almak istiyorsanız geri sekmesine tıklayın.Dilerseniz blum aksesuar sistemlerinden devam edelim yada diğer markalar hakkında bilgi almak istiyorsanız geri sekmesine tıklayın",
+                options: [
+                    { id: 'teleskopik-samet', text: 'teleskopik' },
+                    { id: 'mandallı-samet', text: 'mandallı' },
+                    { id: 'basaç-samet', text: 'basaç' }
+                ]
+            },
+            'teleskopik-samet': {
+                text: "Teleskopik Raylar: Temel kullanım için güvenilir ve ekonomik çözümler sunar. Orta düzeyde yük kapasitesine sahiptir ve genellikle yumuşak kapanma özelliği içermez. Ev tipi, az yoğun kullanılan dolaplar ve çocuk odaları için idealdir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'mandallı-samet': {
+                text: "Mandallı Sistemler: Basit ve pratik montajı öne çıkar. Kullanımı kolaydır ancak dayanıklılık açısından sınırlı ömre sahip olabilir. Günlük kullanılan ancak ağır yüke maruz kalmayan mutfak ve banyo dolaplarında kullanılabilir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'basaç-samet': {
+                text: "Basaç Sistemler: Temel ihtiyaçları karşılayan, uygun fiyatlı ürünlerdir. Yoğun kullanımda ömrü kısalabilir. Daha çok ikincil dolap kapakları ve küçük paneller için uygundur.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'blum': {
+                text: "Blum: Sessiz Teknolojinin Lideri. Blum çekmece ray sistemlerinde dünyanın önde gelen markalarından biridir. Avusturya menşeili bu marka, özellikle yumuşak kapanma (soft-close) mekanizmalarındaki mükemmelliğiyle tanınır. Ürünlerinde inovasyon ve dayanıklılık ön plandadır.  Avantajları: Sessiz ve Akıcı Kullanım: Soft-close mekanizmaları sayesinde çekmeceler son derece yumuşak ve sessiz kapanır. Üstün Dayanıklılık: Yüksek kaliteli malzemeler ve titiz mühendislik sayesinde yoğun kullanımda bile uzun ömür sunar. Akıllı Çözümler: TANDEMBOX gibi yenilikçi sistemlerle maksimum işlevsellik ve estetik sunar. Dezavantajları: Maliyet: Yerli markalara kıyasla daha yüksek fiyatlıdır. Kurulum: Bazı sistemlerinin montajı daha karmaşık olabilir ve profesyonel destek gerekebilir. Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: [
+                    { id: 'teleskopik-blum', text: 'teleskopik' },
+                    { id: 'mandallı-blum', text: 'mandallı' },
+                    { id: 'basaç-blum', text: 'basaç' }
+                ]
+            },
+            'teleskopik-blum': {
+                text: "Teleskopik Raylar (TANDEMOBLIX): Sessiz çalışma, yumuşak kapanma (BLUMOTION) ve üstün yük kapasitesi ile öne çıkar. Tam çekme özelliği sayesinde erişim kolaylığı sunar. Erişim kolaylığı sunar. Profesyonel mutfaklar, ofisler ve yüksek kalite beklentisi olan tüm yaşam alanları için idealdir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'mandallı-blum': {
+                text: "Mandallı Sistemler (LEGRABOX): Yüksek teknolojili, kullanımı son derece kolay ve dayanıklı mandallı mekanizmalardır. Minimalist tasarımla birleşen üstün performans sunar. Lüks mutfak ve banyolar, tasarım ofisleri için mükemmeldir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'basaç-blum': {
+                text: "Basaç Sistemler (AVENTOS): Yenilikçi ve kompakt tasarımlarıyla dikkat çeker. Tek tuşla açılıp kapanma, yumuşak hareket ve uzun ömür sunar. Modern üst dolaplar ve akıllı ev entegrasyonu istenen projeler için idealdir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'hafele': {
+                text: "Hafele: Fonksiyonelliğin ve Yenilikçi Tasarımın Öncüsü .Alman menşeili Hafele, işlevsel çözümler ve akıllı detaylara odaklanan, mobilya aksesuarları denilince akla gelen küresel markalardan biridir. Geniş ve yenilikçi ürün yelpazesiyle fark yaratır. Avantajları: Geniş Ürün Yelpazesi: Her türlü ihtiyaca ve tasarıma uygun, standart dışı ölçüler de dahil olmak üzere çok çeşitli ray seçenekleri sunar. Teknolojik Entegrasyon: Elektronik açılım sistemleri gibi akıllı ev uyumlu, yenilikçi çözümler konusunda önde gelen markalardandır. Evrensel Kalite: Alman mühendisliğinin sağlamlığını ve güvenilirliğini global standartlarda sunar. Dezavantajları: Fiyat Performans: Yerli markalara kıyasla daha yüksek, özellikle teknoloji odaklı ürünlerde premium fiyatlandırmaya sahiptir. Karmaşıklık: Çok fazla seçenek ve teknik detay, nihai kararı müşteri için zorlaştırabilir.Dilerseniz hafele aksesuar sistemlerinden devam edelim yada diğer markalar hakkında bilgi almak istiyorsanız geri sekmesine tıklayınDilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız. ",
+                options: [
+                    { id: 'teleskopik-hafele', text: 'teleskopik' },
+                    { id: 'mandallı-hafele', text: 'mandallı' },
+                    { id: 'basaç-hafele', text: 'basaç' }
+                ]
+            },
+            'teleskopik-hafele': {
+                text: "Teleskopik Raylar: Geniş bir yelpazede, farklı yük kapasitelerine uygun ürünler sunar. Orta ve üst segmentteki ürünleri yumuşak kapanma özellikleriyle dikkat çeker. Konut ve ticari projelerde, esnek çözüm ihtiyacı olan her alanda kullanılabilir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'mandallı-hafele': {
+                text: "Mandallı Sistemler (QUADRO): Sağlam yapılı ve güvenilir kullanım sunar. Montajı nispeten kolaydır ve geniş uyumluluk sağlar. Orta sınıf ve üstü mutfaklar, bagaj sistemleri ve ofis mobilyaları için uygundur.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'basaç-hafele': {
+                text: "Basaç Sistemler: Teknolojik entegrasyona uygun, kompakt ve işlevsel tasarımları vardır. Elektronik açılım seçenekleri de mevcuttur. Modern üst dolaplar ve akıllı ev entegrasyonu istenen projeler için idealdir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'hettich': {
+                text: "Hettich: Alman Mühendisliğinin Sessiz Gücü Köklü Alman markası Hettich, sadelik ve olağanüstü dayanıklılığı ön planda tutar. \"Quiet Line\" gibi teknolojileriyle, sağlamlığın yanı sıra üst düzey bir sessizlik deneyimi vaat eder. Avantajları: Sessiz Çalışma: \"Quiet Line\" teknolojisi, sadece yumuşak kapanma değil, aynı zamanda son derece sessiz bir kullanım sunar. Üstün Dayanıklılık: Alman mühendisliğinin titizliği, yoğun kullanımda dahi onlarca yıl sorunsuz hizmet verebilecek ürünler anlamına gelir. Güvenilir Performans: Sade, abartısız tasarımları, uzun vadede istikrarlı ve güvenilir bir performansın teminatıdır. Dezavantajları: Tasarım Sadeliği: Daha köşeli ve endüstriyel duran tasarımları, daha \"şık\" veya \"yumuşak\" çizgiler arayanlar için sade gelebilir. Maliyet: Kalitesinin ve marka değerinin bir yansıması olarak, yerel rakiplere kıyasla daha yüksek fiyatlıdır.Dilerseniz hettich aksesuar sistemlerinden devam edelim yada diğer markalar hakkında bilgi almak istiyorsanız geri sekmesine tıklayın",
+                options: [
+                    { id: 'teleskopik-hettich', text: 'teleskopik' },
+                    { id: 'mandallı-hettich', text: 'mandallı' },
+                    { id: 'basaç-hettich', text: 'basaç' }
+                ]
+            },
+            'teleskopik-hettich': {
+                text: "teleskopik Raylar (QUADRO): Alman mühendisliğinin sağlamlığını yansıtır. Sessiz ve ağır yüklere dayanıklı çalışma prensibiyle öne çıkar. Yoğun trafikli ofisler, oteller ve konut projeleri gibi uzun ömür beklentisi olan yerlerde tercih edilir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'mandallı-hettich': {
+                text: "Mandallı Sistemler (iGUIDE): Hassas ve sessiz kapanmanın ön planda olduğu, yüksek kaliteli mandallı sistemlerdir. Sürekli kullanım gerektiren, yıpranma riski yüksek ortamlarda güvenle kullanılır.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'basaç-hettich': {
+                text: "Basaç Sistemler (LIFTEC): Güçlü yay mekanizmaları ve uzun ömürlü performans vaat eder. Ağır kapaklar için bile sorunsuz çalışır. Profesyonel mutfaklar ve ağır kapaklı dolaplar için en güvenilir seçeneklerden biridir.Dilerseniz ürün görseli için görsel butonuna tıklayın veeya bir üst menüye dönmek için \"Geri\" tuşuna basınız.",
+                options: []
+            },
+            'menteşeler': {
+                text: "Menteşeler, mobilyanızın görünmeyen kahramanlarıdır. Onlar, kapaklarınızın tüm ağırlığını üstlenen, her açılıp kapanışında size kusursuz bir deneyim yaşatan ve mobilyanızın ömrünü belirleyen sessiz mühendislik harikalarıdır. Kalitenin gerçek sınavı, menteşelerde verilir.Şimdi, bu hayati detayda size en uygun markayı keşfetme zamanı. Her biri farklı ihtiyaçlara ve bütçelere hitap eden seçeneklerimiz.Mimarımız, seçtiğiniz markaya göre en uygun menteşe türünü ürünlerinize uygulayacaktır.  Mobilyanızın bu kritik bağlantısını hangi markayla güçlendirmek istersiniz? Bir seçim yaparak detayları öğrenin veya \"Geri\" tuşuyla aksesuar menüsüne dönüş yapın.",
+                options: [
+                    { id: 'samet-menteşe', text: 'Samet' },
+                    { id: 'blum-menteşe', text: 'Blum' },
+                    { id: 'hafele-menteşe', text: 'Hafele' }
+                ]
+            },
+            'samet-menteşe': {
+                text: "Samet: Yerli üretimin güvenilir ve uygun fiyatlı dengesi.",
+                options: []
+            },
+            'blum-menteşe': {
+                text: "Blum: Sessizliğin, akıcılığın ve uzun ömrün lüks temsilcisi.",
+                options: []
+            },
+            'hafele-menteşe': {
+                text: "Hafele: Yenilikçi çözümler ve geniş ürün yelpazesiyle teknolojinin öncüsü.",
+                options: []
+            },
+            'aydinlatma': {
+                text: "Aydınlatma, mobilyanızı tamamlayan sihirli bir dokunuştur. Artık sadece geceleri değil, gündüzleri de mobilyalarınızın iç mimarisini vurgulayan, derinlik ve zarafet katan bir unsura dönüşür. Amacımız sadece aydınlatmak değil, mekanınıza bir ruh, modern bir karakter ve bütünlük kazandırmaktır.Bu özel etki, talep etmeniz durumunda projenize dahil ettiğimiz bir hizmettir. En son LED teknolojileriyle, mobilyanızın formuna özel olarak entegre edilen aydınlatma çözümleri sunuyoruz. Farklı ışık tonları (sıcak, nötr, soğuk beyaz) ile tasarımınıza uyum sağlayarak, sadece işlevsel değil aynı zamanda estetik bir bütünlük katan zarif bir dokunuş sunuyoruz. Bu ışıltılı dünyayı projenize dahil etmek isterseniz, lütfen talebinizi mimarımıza veya  baş tasarım danışmanıa iletin.",
+                options: []
+            },
+            'cam-yuzeyler': {
+                text: "Cam Alanlar: Tasarımınıza Şeffaf Bir Derinlik Katın.Cam uygulamaları, mobilyanıza sadece işlevsellik değil, aynı zamanda modern bir ferahlık ve zarafet katar. Özellikle kapak içleri ve raf sistemlerinde kullanılan camlar, mekanınıza hafiflik ve görsel bir zenginlik getirir. Farklı kalınlık seçeneklerimizle (4mm, 6mm, 8mm, 10mm) her ihtiyaca özel çözümler sunuyoruz. Camın sunduğu avantajlar: Ferahlık Hissi: Mekanı olduğundan daha geniş ve aydınlık gösterir. Modern Görünüm: Minimalist ve çağdaş tasarımlara mükemmel uyum sağlar. İşlevsel Estetik: Hem dekoratif hem de pratik bir çözüm sunar. Nasıl devam etmek istersiniz? \"Devam\" diyerek cam kalınlık seçeneklerini detaylandıralım. \"Geri\" diyerek ana menüye dönüp diğer seçenekleri keşfedelim.",
+                options: [
+                    { id: '4-mm', text: '4 MM' },
+                    { id: '6-mm', text: '6 MM' },
+                    { id: '8-mm', text: '8 MM' },
+                    { id: '10-mm', text: '10 MM' }
+                ]
+            },
+            '4-mm': {
+                text: "4mm Cam: Zarafet ve Hafifliğin Mükemmel Dengesi. 4mm kalınlığındaki cam, ince profiliyle maksimum estetik sunar. Özellikle dekoratif uygulamalarda ve hafif yüklü alanlarda ideal bir seçimdir.Kullanım Alanları: Dolap kapak içi kaplamaları Aydınlatmalı niş ve raf sistemleri Vitrin ve dekoratif bölmeler Hafif evye altı dolap kapakları Kullanılmaması Gereken Yerler: Ağır mutfak eşyalarının konulduğu raflar Çocuk odası ve yüksek darbe riski olan alanlar Geniş açıklıklı (60cm'den fazla) raf sistemleri. Seçeneklerimiz: Düz • Satine • Reflekte • Füme • Nervürlü • Bronz • Siyah Boyalı Nasıl devam etmek istersiniz? \"Devam\" diyerek diğer cam kalınlıklarını inceleyebilir veya \"Geri\" ile cam menüsüne dönebilirsiniz.",
+                options: [
+                    { id: 'düz-4mm', text: 'düz' },
+                    { id: 'satine-4mm', text: 'satine' },
+                    { id: 'reflekte-4mm', text: 'reflekte' },
+                    { id: 'füme-4mm', text: 'füme' },
+                    { id: 'nervürlü-4mm', text: 'nervürlü' },
+                    { id: 'bronz-4mm', text: 'bronz' },
+                    { id: 'siyah-boyalı-4mm', text: 'siyah boyalı' }
+                ]
+            },
+            'düz-4mm': {
+                text: "Bu seçenek, saflığın ve şeffaflığın en zarif ifadesidir. Işığı olduğu gibi, en duru haliyle geçirerek mekanınıza berraklık ve derinlik katar. Modern ve minimalist tasarımların vazgeçilmezidir. Bu camın görselini incelemek için \"Görsel\" sekmesini tıklayın. Diğer 4mm cam seçeneklerini görmek için \"Geri\" tuşuna basın.",
+                options: []
+            },
+            'satine-4mm': {
+                text: "İpeksi, yumuşak dokusuyla gözleri yormayan bir parıltı sunar. Dokunmaya davet eden, gizemli ve aynı zamanda son derece modern bir etki yaratır. Bu camın görselini incelemek için \"Görsel\" sekmesini tıklayın. Diğer 4mm cam seçeneklerini görmek için \"Geri\" tuşuna basın.",
+                options: []
+            },
+            'reflekte-4mm': {
+                text: "Ayna etkisiyle mekana ışık ve hareket getirir. Bulunduğu her alanı yansımalarla genişleten, dinamik ve lüks bir tercihtir. Bu camın görselini incelemek için \"Görsel\" sekmesini tıklayın. Diğer 4mm cam seçeneklerini görmek için \"Geri\" tuşuna basın.",
+                options: []
+            },
+            'füme-4mm': {
+                text: "Siyahın şeffaf tonuyla sofistike bir gizem sunar. Gizli bir zarafet ve güçlü bir karakter arayanlar için ideal bir seçenektir. Bu camın görselini incelemek için \"Görsel\" sekmesini tıklayın. Diğer 4mm cam seçeneklerini görmek için \"Geri\" tuşuna basın.",
+                options: []
+            },
+            'nervürlü-4mm': {
+                text: "Dokusuyla adeta bir sanat eseridir. Işığı farklı açılarda kırarak, her bakışta değişen desenler ve gölgelerle görsel bir şölen sunar. Bu camın görselini incelemek için \"Görsel\" sekmesini tıklayın. Diğer 4mm cam seçeneklerini görmek için \"Geri\" tuşuna basın.",
+                options: []
+            },
+            'bronz-4mm': {
+                text: "Sıcak ve davetkarlığın şeffaf yansımasıdır. Mekanınıza samimi bir atmosfer ve özgün bir karakter kazandırır. Bu camın görselini incelemek için \"Görsel\" sekmesini tıklayın. Diğer 4mm cam seçeneklerini görmek için \"Geri\" tuşuna basın.",
+                options: []
+            },
+            'siyah-boyalı-4mm': {
+                text: "Modernizmin cesur ifadesidir. Siyahın gücünü şeffaflıkla buluşturarak, güçlü ve gizemli bir vurgu noktası yaratır. Bu camın görselini incelemek için \"Görsel\" sekmesini tıklayın. Diğer 4mm cam seçeneklerini görmek için \"Geri\" tuşuna basın.",
+                options: []
+            },
+            '6-mm': {
+                text: "6mm Cam: Dayanıklı Zarafetin Mükemmel Dengesi Sağlamlığı zarafetle buluşturan bu seçenek, orta ölçekli raf ve bölme sistemlerinde ideal dengeyi sunar. Geniş açıklıklarda güvenle kullanılabilen 6mm cam, ağır olmadan dayanıklı, şık ama güçlü bir tercihtir.Görseli incelemek için \"Görsel\" sekmesini tıklayın veya diğer cam ölçüleri hakkında bilgi almak için \"Geri\" tuşuna basın.",
+                options: [
+                    { id: 'düz-6mm', text: 'düz' }
+                ]
+            },
+            'düz-6mm': {
+                text: "Bu seçenek, saflığın ve şeffaflığın en zarif ifadesidir. Işığı olduğu gibi, en duru haliyle geçirerek mekanınıza berraklık ve derinlik katar. Modern ve minimalist tasarımların vazgeçilmezidir.Orta segment bir kalınlıktadır.Nispeten kısıtlı da olsa dayanma mukavemeti 8 mm veya 100 mm kadar olmasa da 4 mm malzemeye göre oldukça dayanıklıdır",
+                options: []
+            },
+            '8-mm': {
+                text: "8mm Cam: Görkemli Berraklığın İfadesi. Etkileyici kalınlığıyla öne çıkan bu cam, geniş tezgah altı kapakları ve masif raf sistemleri için mükemmeldir. Dayanıklı yapısıyla ağır yüklere meydan okurken, kristal berraklığıyla mekanınızı aydınlatır. Görseli incelemek için \"Görsel\" sekmesini tıklayın veya diğer cam ölçüleri hakkında bilgi almak için \"Geri\" tuşuna basın.",
+                options: [
+                    { id: 'düz-8mm', text: 'düz' }
+                ]
+            },
+            'düz-8mm': {
+                text: "Bu seçenek, saflığın ve şeffaflığın en zarif ifadesidir. Işığı olduğu gibi, en duru haliyle geçirerek mekanınıza berraklık ve derinlik katar. Modern ve minimalist tasarımların vazgeçilmezidir.Cam malzeme olduğunu unutmamakla birlikte dayanıklılığı ile öne çıkan bir malzemedir.",
+                options: []
+            },
+            '10-mm': {
+                text: "10 mm Cam: Lüksün Şeffaf Manifestosu. Maksimum dayanıklılık arayanlar için özel olarak tasarlandı. Geniş açıklıklı cam kapaklar ve ağır yük taşıyan raflar için ideal çözüm. Kalın kesitiyle derinlik hissi yaratır, lüks projelerde vurgu unsuru olarak öne çıkar. Görseli incelemek için \"Görsel\" sekmesini tıklayın veya diğer cam ölçüleri hakkında bilgi almak için \"Geri\" tuşuna basın.",
+                options: [
+                    { id: 'düz-10mm', text: 'düz' }
+                ]
+            },
+            'düz-10mm': {
+                text: "Bu seçenek, saflığın ve şeffaflığın en zarif ifadesidir. Işığı olduğu gibi, en duru haliyle geçirerek mekanınıza berraklık ve derinlik katar. Modern ve minimalist tasarımların vazgeçilmezidir.Cam malzeme olduğunu unutmamakla birlikte dayanıklılığı ile öne çıkan bir malzemedir.",
+                options: []
+            },
+            'ayna-kaplamalari': {
+                text: "Aynalar: Mekanınıza Derinlik ve Işık Getiren Sihirli Dokunuş. Aynalar, mobilya tasarımında hem işlevsel hem de dekoratif bir güce sahiptir. Dolap kapaklarına uygulandığında, mekanınıza görsel bir derinlik kazandırarak dar alanları ferah ve geniş bir hale getirir. Işığı yansıtarak odanızı daha aydınlık ve enerjik hissettirirken, aynı zamanda şık ve modern bir atmosfer yaratır. Özel Ayna Çeşitlerimiz: Füme Ayna: Sofistike ve gizemli bir hava katarken, yansımaları yumuşatır. Bronz Ayna: Sıcak ve davetkar tonlarıyla mekana samimi bir zarafet katar. Antik Sarı Ayna: Vintage ve retro tarzı sevenler için, eskimiş bir zarafet hissi verir. Gümüş Flotal Ayna: Klasik ve zamansız bir seçenek olarak, en saf ve net yansımayı sunar. Aynaların bu büyülü dünyasını projenize dahil etmek isterseniz, \"Devam\" diyerek detayları konuşalım. Veya \"Geri\" tuşuyla ana menüye dönerek diğer seçenekleri keşfetmeye devam edelim.",
+                options: [
+                    { id: '4-mm-ayna', text: '4 MM' }
+                ]
+            },
+            '4-mm-ayna': {
+                text: "Gardrobunuzdaki aynalar genellikle 4 mm kalınlığındadır. Ne çok ince ne çok kalın mükemmel dengeyi sunar. Bu kalınlık, olası kırılmalarda daha güvenlidir",
+                options: [
+                    { id: 'füme-ayna', text: 'füme' },
+                    { id: 'bronz-ayna', text: 'bronz' },
+                    { id: 'antik-sarı-ayna', text: 'antik sarı' },
+                    { id: 'gümüş-flotal-ayna', text: 'gümüş flotal' }
+                ]
+            },
+            'füme-ayna': {
+                text: "Füme Ayna: Gizem ve Modern Zarafetin Buluşması Füme ayna, geleneksel aynaların aydınlığına sofistike bir alternatif sunar. Siyah ve gri tonlarındaki bu buğulu kaplama, yansımaları yumuşatır ve mekana derin, gizemli bir hava katar. Özellikle modern, endüstriyel veya minimalist tasarımlarda güçlü bir vurgu öğesine dönüşür. Dolap kapaklarında kullanıldığında, ferahlık hissini korurken aynı zamanda özgün ve sanatsal bir dokunuş yaratır. Bu büyüleyici etkiyi yakından görmek için \"Görsel\" sekmesini tıklayabilir veya \"Geri\" tuşuyla diğer ayna seçeneklerimize dönebilirsiniz.",
+                options: []
+            },
+            'bronz-ayna': {
+                text: "Bronz Ayna: Sıcaklığın ve Lüksün Yansıması. Bronz ayna, mekanınıza davetkâr bir sıcaklık ve lüks bir karakter kazandırır. Geleneksel gümüş aynalardan farklı olarak, yansımaları altın ve bakır tonlarıyla yumuşatarak ortama samimi ve zengin bir atmosfer yaratır. Özellikle klasik, modern-klasik veya bohem tarzındaki mekanlarda mükemmel bir uyum sağlar. Dolap kapaklarında kullanıldığında, mekanı olduğundan daha ferah ve davetkâr hissettirirken, sofistike ve sıcak bir dokunuş sunar. Bu lüks etkiyi yakından görmek için \"Görsel\" sekmesini tıklayabilir veya \"Geri\" tuşuyla diğer ayna seçeneklerimize dönebilirsiniz.",
+                options: []
+            },
+            'antik-sarı-ayna': {
+                text: "Antik Sarı Ayna: Zamansız Zarafetin İzleri. Antik sarı ayna, geçmişin ihtişamını ve romantizmini günümüze taşıyan büyüleyici bir seçenektir. Soluk altın tonları ve hafif buğulu yüzeyi, her yansımaya yumuşak, hikayeli bir karakter katar. Klasik, vintage veya shabby-chic tarzdaki mekanlar için vazgeçilmezdir. Dolap kapaklarında kullanıldığında, mekana sıcak, samimi ve nostaljik bir hava katarken, derinlik ve asil bir zarafet hissi sunar. Bu zamansız güzelliği yakından görmek için \"Görsel\" sekmesini tıklayabilir veya \"Geri\" tuşuyla diğer ayna seçeneklerimize dönebilirsiniz.",
+                options: []
+            },
+            'gümüş-flotal-ayna': {
+                text: "Gümüş Flotal Ayna: Klasik Berraklığın Modern Yansıması. Gümüş flotal ayna, arkasındaki gümüş kaplama sayesinde son derece net, parlak ve derinlikli bir yansıma sunar. Bu özelliği ile mekanınıza saf bir ışık ve gerçek bir ferahlık hissi katar. Modern, minimalist veya endüstriyel tarzdaki mekanlarla mükemmel uyum sağlar. Dolap kapaklarında kullanıldığında, mekanı olduğundan daha geniş ve aydınlık gösterirken, temiz ve keskin çizgileriyle vazgeşilmez bir şıklık sunar. Bu kristal berraklığı yakından görmek için \"Görsel\" sekmesini tıklayabilir veya \"Geri\" tuşuyla diğer ayna seçeneklerimize dönebilirsiniz.",
+                options: []
+            },
+            'kumas-dokulari': {
+                text: "Kumaşlar: Mobilyanıza Dokunulan Bir Kimlik. Kumaşlar, mobilyanıza sadece bir yüzey kaplaması değil, aynı zamanda bir karakter ve ruh kazandırır. Oturma grupları, yatak başlıkları, dekoratif yastıklar ve puf gibi ürünlerde kullanılan kumaşlar, mekanınıza konfor, sıcaklık ve tarzınızı yansıtan bir estetik katar. Doğru kumaş seçimi, mobilyanızın ömrünü uzatırken, günlük yaşamınızda size keyifli bir dokunsal deneyim sunar. En çok tercih edilen kumaş türlerimiz şunlardır: Kadife: Lüksün ve yumuşaklığın simgesi. Keten: Doğal ve nefes alabilen bir konfor. Nubuk: Zarif ve kadifemsi bir dokunuş. Deri: Dayanıklı ve sofistike bir şıklık. İpek: Eşsiz bir parıltı ve lüks hissi. Bu kumaş türlerinden birini seçerek detayları öğrenebilir veya \"Geri\" tuşuyla ana menüye dönüş yapabilirsiniz.",
+                options: [
+                    { id: 'kadife', text: 'kadife' },
+                    { id: 'keten', text: 'keten' },
+                    { id: 'nubuk', text: 'nubuk' },
+                    { id: 'deri', text: 'deri' },
+                    { id: 'ipek', text: 'ipek' }
+                ]
+            },
+            'kadife': {
+                text: "Kadife: Dokunmanın Zarafeti. Kadife, lüksün ve konforun en zarif ifadelerinden biridir. Işığa göre değişen yumuşak ışıltısı ve benzersiz dokusuyla her mekana sofistike bir hava katar. Özellikle oturma gruplarında, yatak başlıklarında ve dekoratif yastıklarda kullanıldığında, hem görsel hem de dokunsal bir şölen sunar. Avantajları: Şıklık: Derin, zengin renkleri ve yumuşak ışıltısıyla lüks bir atmosfer yaratır. Konfor: Yumuşacık dokusuyla her dokunuşta rahatlık hissi verir. Dayanıklılık: Kaliteli kadifeler, doğru bakım ile uzun yıllar dayanabilir. İdeal Kullanım Alanları: Oturma odaları ve özel dinlenme alanları. Yatak odası mobilyaları. Dekoratif aksesuarlar ve yastıklar. Kadifenin büyüsünü keşfetmek için \"Görsel\" sekmesine tıklayın veya \"Geri\" tuşuyla diğer kumaş seçeneklerimize dönün.",
+                options: []
+            },
+            'keten': {
+                text: "Keten, Doğanın bize sunduğu en asil dokulardan biridir. Nefes alabilen yapısı ve hafif pütürlü dokusuyla hem serinletici hem de son derece konforludur. Işığı yumuşak bir şekilde yansıtan mat yüzeyi, mekanınıza sakin, huzurlu ve doğal bir atmosfer kazandırır. Her mevsim kullanım için idealdir. Avantajları: Doğallık: Yüksek nefes alabilirliği ile yazın serin, kışın sıcak tutar. Sağlamlık: Dayanıklı lif yapısı sayesinde yıllarca güvenle kullanılır. Şıklık: Yalın ve sade dokusu, minimalist ve İskandinav tarzı mekanlarla mükemmel uyum sağlar. İdeal Kullanım Alanları: Yazlık oturma grupları ve sandalyeler Yatak başlıkları ve dekoratif yastıklar Doğal ve sakin bir atmosfer istenen tüm iç mekanlar Ketenin doğal güzelliğini yakından görmek için \"Görsel\" sekmesine tıklayın veya \"Geri\" tuşuyla diğer kumaş seçeneklerimize dönün.",
+                options: []
+            },
+            'nubuk': {
+                text: "Nubuk: Kadifenin Doğal ve Asil Hali. Nubuk, derinin zımparalanarak kadifemsi bir dokuya kavuşturulmuş en özel halidir. Yumuşak, tüylü yüzeyi ile benzersiz bir dokunuş deneyimi sunarken, doğal görünümü ve dayanıklı yapısıyla göz doldurur. Işığı hafifçe emen mat yüzeyi, mekanınıza sıcak, davetkar ve sofistike bir hava katar. Avantajları: Dokunsal Konfor: İpeksi yumuşaklıkta, ele harika bir his veren yüzey. Dayanıklılık: Yıpranmış görünümü sayesinde küçük çizikler ve izler kolayca belli olmaz. Şıklık: Doğal ve minimalist bir lüks anlayışı sunar. İdeal Kullanım Alanları: Lüks oturma grupları ve şık koltuklar.  Yatak başlıkları ve dekoratif aksesuarlar. Özel ofisler ve tasarım odaları. Nubukun büyüleyici dokusunu yakından görmek için \"Görsel\" sekmesine tıklayın veya \"Geri\" tuşuyla diğer kumaş seçeneklerimize dönün.",
+                options: []
+            },
+            'deri': {
+                text: "Deri: Zamansız Lüks ve Dayanıklılığın Temsilcisi. Deri, mobilya dünyasında vazgeçilmez bir klasiktir. Kendine özgü kokusu, soylu duruşu ve yıllar geçtikçe kazandığı karakterle, sadece bir kumaş değil, bir yaşam tarzı ifadesidir. Dayanıklı yapısı ve kolay temizlenebilir olması, onu günlük kullanımda pratik; zarif dokusu ve lüks görünümü ise vazgeçilmez kılar. Avantajları:  Dayanıklılık: Doğru bakım ile ömür boyu kullanılabilir, yıllar içinde güzel bir patina kaplanır.  Kolay Bakım: Lekelere ve toza karşı dirençlidir, nemli bir bezle silinerek temizlenebilir. Zamansız Şıklık: Klasik ve modern stillerin hepsine uyum sağlayan, asla modası geçmeyen bir estetik sunar. İdeal Kullanım Alanları: Ofis koltukları ve yemek odası sandalyeleri. Lüks oturma grupları ve koltuk takımları. Geleneksel ve modern tarzdaki tüm yaşam alanları. Derinin ihtişamını yakından görmek için \"Görsel\" sekmesine tıklayın veya \"Geri\" tuşuyla diğer kumaş seçeneklerimize dönün.",
+                options: []
+            },
+            'ipek': {
+                text: "İpek: Lüksün ve Doğal İhtişamın Dokunmuş Hali. İpek, doğanın sunduğu en lüks ve göz alıcı dokulardan biridir. Pürüzsüz, yumuşacık yapısı ve ışığı yansıtma özelliğiyle eşsiz bir parıltıya sahiptir. Bu kumaş, mobilyanıza yalnızca bir örtü değil, aynı zamanda bir sanat eseri niteliği kazandırır. Her dokunuşta hissedilen ipeksi yumuşaklık, mekanınıza benzersiz bir zarafet ve romantik bir hava katarken, derin ve zengin renkleriyle göz kamaştırıcı bir etki yaratır. Avantajları: Eşsiz Parlaklık: Işığı yansıtma özelliğiyle odaya canlılık ve derinlik kazandırır. Doğal Yumuşaklık: Teninize temas ettiğinde hissettirdiği yumuşaklık, konforu en üst düzeye taşır. Hafiflik ve Zarafet: Ağırlıksız yapısı ve akıcı duruşuyla son derece şık ve zarif bir görünüm sunar. İdeal Kullanım Alanları: Lüks dekoratif yastıklar ve puflar. Özel tasarım yatak başlıkları. Şık ve özenle seçilmiş aksesuarlar. İpeğin büyüleyici dünyasını yakından görmek için \"Görsel\" sekmesine tıklayın veya \"Geri\" tuşuyla diğer kumaş seçeneklerimize dönün.",
+                options: []
+            },
+            'diger-detaylar': {
+                text: "Sınırsız Hayal Gücünüzün Son Dokunuşları. Mobilyalar, evlerinize kattığı zarafet, şıklık ve fonksiyonellikle, artık günlük eşyalar olmaktan çok daha fazlasıdır. Bizimle birlikte, günümüz moda anlayışının sınırlarını zorlarken, aynı zamanda kendi hayal gücünüzü ve özgün tarzınızı keşfetmenize olanak sağlayan bir yolculuğa çıkacaksınız. Haliyle, mükemmelliğin ve kişiselleştirmenin bir sınırı yok. Özel kesimler, eşsiz mekanik sistemler veya tamamen size özel bir tasarım. Buradaki her bir detay, projenizi tamamlayacak önemli birer parça. İşte tam da bu noktada, biz devreye giriyoruz. \"Diğer Detaylar\" başlığı altındaki tüm bu özel talepleriniz, teknik detaylar ve uygulama süreçleri için mimarımız ve baş tasarım danışmanımız, engin tecrübesiyle hizmetinize sunmak için sabırsızlanıyor.Dilerseniz mimarımız veya baş tasarım danışmanımız hakkında otobiyografilerini sizinle paylaşabilirim Lütfen bize ulaşın, hayalinizdeki mobilyayı birlikte tasarlayalım.",
+                options: []
+            }
+        };
+
+        // ÜRÜN LİSTESİ
+        const products = [
+            { id: 'gardrop', text: 'GARDROP' },
+            { id: 'portmanto', text: 'PORTMANTO' },
+            { id: 'mutfak-dolabi', text: 'MUTFAK DOLABI' },
+            { id: 'dekoratif-duvar-panosu', text: 'DEKORATİF DUVAR PANOSU' },
+            { id: 'tv-unitesi', text: 'TV ÜNİTESİ' },
+            { id: 'banyo-dolabi', text: 'BANYO DOLABI' },
+            { id: 'şifonyer', text: 'ŞİFONYER' },
+            { id: 'kahve-köşesi', text: 'KAHVE KÖŞESİ' },
+            { id: 'diğerleri', text: 'DİĞERLERİ' }
+        ];
+
+        // MAT RENKLER
+        const matColors = [
+            { text: 'Mat Beyaz', desc: 'Sade ve zamansız çizgisiyle her mekâna ferahlık katar.' },
+            { text: 'Mat Krem', desc: 'Sıcak bir zarafet sunar; ışığı yumuşatır, ortama huzur getirir.' },
+            { text: 'Mat Gri', desc: 'Modernliğin sessiz temsilcisidir; şehirli bir duruşu vardır.' },
+            { text: 'Mat Bej', desc: 'Doğallığı ve dengeyi sever — göz yormaz, ruhu dinlendirir.' },
+            { text: 'Mat Kahve', desc: 'Ahşabın sıcak tonlarıyla mükemmel uyum yakalar.' },
+            { text: 'Mat Antrasit', desc: 'Cesur ve karakterli mekanlar için güçlü bir seçimdir.' },
+            { text: 'Mat Hardal', desc: 'Enerjik, farklı ve tasarımda özgünlük arayanlar için dikkat çekici bir alternatiftir.' },
+            { text: 'Mat Diğer Renkler', desc: 'Renk paletimiz, hayal gücünüzün sınırlarını zorlayacak kadar geniş. Özel projeniz için en doğru tonu bulmak üzere, mimarımızın renk uzmanlığından faydalanmanızı öneririz.' }
+        ];
+
+        // PARLAK RENKLER
+        const parlakColors = [
+            { text: 'Parlak Beyaz', desc: 'Sade ve zamansız çizgisiyle her mekâna ferahlık katar.' },
+            { text: 'Parlak Krem', desc: 'Sıcak bir zarafet sunar; ışığı yumuşatır, ortama huzur getirir.' },
+            { text: 'Parlak Gri', desc: 'Modernliğin sessiz temsilcisidir; şehirli bir duruşu vardır.' },
+            { text: 'Parlak Bej', desc: 'Doğallığı ve dengeyi sever — göz yormaz, ruhu dinlendirir.' },
+            { text: 'Parlak Kahve', desc: 'Ahşabın sıcak tonlarıyla mükemmel uyum yakalar.' },
+            { text: 'Parlak Antrasit', desc: 'Cesur ve karakterli mekanlar için güçlü bir seçimdir.' },
+            { text: 'Parlak Hardal', desc: 'Enerjik, farklı ve tasarımda özgünlük arayanlar için dikkat çekici bir alternatiftir.' },
+            { text: 'Parlak Diğer Renkler', desc: 'Renk paletimiz, hayal gücünüzün sınırlarını zorlayacak kadar geniş. Özel projeniz için en doğru tonu bulmak üzere, mimarımızın renk uzmanlığından faydalanmanızı öneririz.' }
+        ];
+
+        // MDF LAM RENKLER
+        const mdfLamColors = [
+            { text: 'MDF Lam Beyaz', desc: 'Sade ve zamansız çizgisiyle her mekâna ferahlık katar.' },
+            { text: 'MDF Lam Krem', desc: 'Sıcak bir zarafet sunar; ışığı yumuşatır, ortama huzur getirir.' },
+            { text: 'MDF Lam Gri', desc: 'Modernliğin sessiz temsilcisidir; şehirli bir duruşu vardır.' },
+            { text: 'MDF Lam Bej', desc: 'Doğallığı ve dengeyi sever — göz yormaz, ruhu dinlendirir.' },
+            { text: 'MDF Lam Kahve', desc: 'Ahşabın sıcak tonlarıyla mükemmel uyum yakalar.' },
+            { text: 'MDF Lam Antrasit', desc: 'Cesur ve karakterli mekanlar için güçlü bir seçimdir.' },
+            { text: 'MDF Lam Hardal', desc: 'Enerjik, farklı ve tasarımda özgünlük arayanlar için dikkat çekici bir alternatiftir.' },
+            { text: 'MDF Lam Diğer Renkler', desc: 'Renk paletimiz, hayal gücünüzün sınırlarını zorlayacak kadar geniş. Özel projeniz için en doğru tonu bulmak üzere, mimarımızın renk uzmanlığından faydalanmanızı öneririz.' }
+        ];
+
+        // LAK PANEL RENKLER
+        const lakPanelColors = [
+            { text: 'Lak Panel Beyaz', desc: 'Sade ve zamansız çizgisiyle her mekâna ferahlık katar.' },
+            { text: 'Lak Panel Krem', desc: 'Sıcak bir zarafet sunar; ışığı yumuşatır, ortama huzur getirir.' },
+            { text: 'Lak Panel Gri', desc: 'Modernliğin sessiz temsilcisidir; şehirli bir duruşu vardır.' },
+            { text: 'Lak Panel Bej', desc: 'Doğallığı ve dengeyi sever — göz yormaz, ruhu dinlendirir.' },
+            { text: 'Lak Panel Kahve', desc: 'Ahşabın sıcak tonlarıyla mükemmel uyum yakalar.' },
+            { text: 'Lak Panel Antrasit', desc: 'Cesur ve karakterli mekanlar için güçlü bir seçimdir.' },
+            { text: 'Lak Panel Hardal', desc: 'Enerjik, farklı ve tasarımda özgünlük arayanlar için dikkat çekici bir alternatiftir.' },
+            { text: 'Lak Panel Diğer Renkler', desc: 'Renk paletimiz, hayal gücünüzün sınırlarını zorlayacak kadar geniş. Özel projeniz için en doğru tonu bulmak üzere, mimarımızın renk uzmanlığından faydalanmanızı öneririz.' }
+        ];
+
+        // ALUMİNYUM RENKLER
+        const aluminyumColors = [
+            { text: 'Aluminyum Beyaz', desc: 'Sade ve zamansız çizgisiyle her mekâna ferahlık katar.' },
+            { text: 'Aluminyum Krem', desc: 'Sıcak bir zarafet sunar; ışığı yumuşatır, ortama huzur getirir.' },
+            { text: 'Aluminyum Gri', desc: 'Modernliğin sessiz temsilcisidir; şehirli bir duruşu vardır.' },
+            { text: 'Aluminyum Bej', desc: 'Doğallığı ve dengeyi sever — göz yormaz, ruhu dinlendirir.' },
+            { text: 'Aluminyum Kahve', desc: 'Ahşabın sıcak tonlarıyla mükemmel uyum yakalar.' },
+            { text: 'Aluminyum Antrasit', desc: 'Cesur ve karakterli mekanlar için güçlü bir seçimdir.' },
+            { text: 'Aluminyum Hardal', desc: 'Enerjik, farklı ve tasarımda özgünlük arayanlar için dikkat çekici bir alternatiftir.' },
+            { text: 'Aluminyum Diğer Renkler', desc: 'Renk paletimiz, hayal gücünüzün sınırlarını zorlayacak kadar geniş. Özel projeniz için en doğru tonu bulmak üzere, mimarımızın renk uzmanlığından faydalanmanızı öneririz.' }
+        ];
+
+        // WHATSAPP MESAJINI GÜNCELLE
+        function updateWhatsAppMessage(product, color) {
+            const categoryName = getCategoryName(currentCategory);
+            contactSettings.whatsappMessage = `Merhaba, Usta AI üzerinden iletişime geçiyorum. Seçtiğim ürün: ${product.text}, Renk: ${color.text}, Kategori: ${categoryName}. Detaylar hakkında bilgi almak istiyorum.`;
+        }
+
+        // KATEGORİ ADINI AL
+        function getCategoryName(categoryId) {
+            const categoryNames = {
+                'gövde': 'Gövde',
+                'kapaklar': 'Kapaklar',
+                'aksesuarlar': 'Aksesuarlar',
+                'aydinlatma': 'Aydınlatma',
+                'cam-yuzeyler': 'Cam Yüzeyler',
+                'ayna-kaplamalari': 'Ayna Kaplamaları',
+                'kumas-dokulari': 'Kumaş Dokuları',
+                'diger-detaylar': 'Diğer Detaylar'
+            };
+            
+            return categoryNames[categoryId] || categoryId.toUpperCase();
+        }
+
+        // İLETİŞİM FONKSİYONLARI
+        function openInstagram() {
+            stopSpeech();
+            window.open(contactSettings.instagramUrl, '_blank');
+        }
+
+        function callPhone() {
+            stopSpeech();
+            window.location.href = `tel:${contactSettings.phoneNumber}`;
+        }
+
+        function openWhatsApp() {
+            stopSpeech();
+            const message = encodeURIComponent(contactSettings.whatsappMessage);
+            const whatsappUrl = `https://wa.me/${contactSettings.whatsappNumber}?text=${message}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // İNTROYU GEÇ FONKSİYONU
+        function skipIntro() {
+            introSkipped = true;
+            stopSpeech();
+            playClickSound();
+            
+            const skipIntroBtn = document.getElementById('skipIntroBtn');
+            skipIntroBtn.style.opacity = '0';
+            setTimeout(() => {
+                skipIntroBtn.style.display = 'none';
+            }, 500);
+            
+            moveAudioToTopRight();
+            showMenu('main');
+            
+            setTimeout(() => {
+                const shortSpeech = "Hazırsanız, ana bileşenlere geçelim. Ana bileşenleri sizler için derledik. Dilerseniz en temel parça gövde ile başlayalım. Hazırsanız devam etmek için kutucuklardan birini seçin!";
+                speakText(shortSpeech);
+                
+                const menuBoxes = document.querySelectorAll('#mainMenuContainer .menu-box');
+                menuBoxes.forEach(box => {
+                    box.addEventListener('click', function() {
+                        const category = this.getAttribute('data-category');
+                        onCategoryClick(category);
+                    });
+                });
+            }, 500);
+        }
+
+        // SES SİSTEMİNİ HAZIRLA
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Ses desteklenmiyor:', e);
+            }
+        }
+
+        // KISA TIK SESİ
+        function playClickSound() {
+            if (!audioContext) return;
+            
+            try {
+                const now = audioContext.currentTime;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, now);
+                
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.2, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+                
+            } catch (error) {
+                console.log('Ses hatası:', error);
+            }
+        }
+
+        // SES EFEKTİ ÇUBUKLARINI HAREKETLENDİR
+        function startAudioBars() {
+            const bars = document.querySelectorAll('.centered-bar, .mini-bar');
+            bars.forEach(bar => {
+                bar.classList.add('moving');
+            });
+        }
+
+        // SES EFEKTİ ÇUBUKLARINI DURDUR
+        function stopAudioBars() {
+            const bars = document.querySelectorAll('.centered-bar, .mini-bar');
+            bars.forEach(bar => {
+                bar.classList.remove('moving');
+            });
+        }
+
+        // SESİ DURDUR
+        function stopSpeech() {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                stopAudioBars();
+            }
+        }
+
+        // SESLİ KONUŞMA
+        function speakText(text) {
+            return new Promise((resolve) => {
+                if ('speechSynthesis' in window) {
+                    stopSpeech();
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'tr-TR';
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+                    
+                    utterance.onstart = function() {
+                        startAudioBars();
+                    };
+                    
+                    utterance.onend = function() {
+                        stopAudioBars();
+                        resolve();
+                    };
+                    
+                    utterance.onerror = function(event) {
+                        stopAudioBars();
+                        resolve();
+                    };
+                    
+                    speechSynthesis.speak(utterance);
+                    currentSpeech = utterance;
+                } else {
+                    resolve();
+                }
+            });
+        }
+
+        // SES EFEKTİNİ GÖSTER
+        function showAudioEffect() {
+            const audioContainer = document.getElementById('audioContainer');
+            audioContainer.style.display = 'flex';
+            setTimeout(() => {
+                audioContainer.style.opacity = '1';
+            }, 100);
+        }
+
+        // SES EFEKTİNİ YUKARI SAĞA TAŞI
+        function moveAudioToTopRight() {
+            const audioContainer = document.getElementById('audioContainer');
+            const audioTopRight = document.getElementById('audioTopRight');
+            
+            audioContainer.style.opacity = '0';
+            
+            setTimeout(() => {
+                audioContainer.style.display = 'none';
+                
+                audioTopRight.style.display = 'flex';
+                setTimeout(() => {
+                    audioTopRight.style.opacity = '1';
+                }, 100);
+            }, 500);
+        }
+
+        // MENÜYÜ GÖSTER
+        function showMenu(menuType) {
+            const mainMenu = document.getElementById('mainMenuContainer');
+            const contentScreen = document.getElementById('contentScreen');
+            
+            mainMenu.style.display = 'none';
+            contentScreen.style.display = 'none';
+            
+            if (menuType === 'main') {
+                mainMenu.style.display = 'block';
+                document.getElementById('backButton').classList.remove('show');
+                setTimeout(() => {
+                    mainMenu.style.opacity = '1';
+                }, 100);
+            } else if (menuType === 'content') {
+                contentScreen.style.display = 'block';
+                document.getElementById('backButton').classList.add('show');
+                setTimeout(() => {
+                    contentScreen.style.opacity = '1';
+                }, 100);
+            }
+        }
+
+        // İÇERİK EKRANINI GÖSTER
+        function showContentScreen(categoryId) {
+            const contentDataItem = contentData[categoryId];
+            if (!contentDataItem) return;
+
+            const contentText = document.getElementById('contentText');
+            const contentOptions = document.getElementById('contentOptions');
+            const productButton = document.getElementById('productButton');
+            const contactButtons = document.getElementById('contactButtons');
+            
+            contentText.textContent = contentDataItem.text;
+            
+            contentOptions.innerHTML = '';
+            if (contentDataItem.options && contentDataItem.options.length > 0) {
+                contentDataItem.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.className = 'content-option';
+                    button.textContent = option.text;
+                    button.onclick = () => onOptionClick(option.id);
+                    contentOptions.appendChild(button);
+                });
+            }
+            
+            if (contentDataItem.showProductButton) {
+                productButton.style.display = 'block';
+            } else {
+                productButton.style.display = 'none';
+            }
+            
+            contactButtons.style.display = 'none';
+            
+            showMenu('content');
+            currentCategory = categoryId;
+            
+            setTimeout(() => {
+                speakText(contentDataItem.text).then(() => {
+                    // Eğer stopSpeech flag'i true ise, seslendirme sonrası sesi durdur
+                    if (contentDataItem.stopSpeech) {
+                        stopSpeech();
+                    }
+                });
+            }, 500);
+        }
+
+        // KATEGORİ TIKLANDIĞINDA
+        function onCategoryClick(category) {
+            playClickSound();
+            menuHistory.push({ type: 'menu', id: currentMenu });
+            currentMenu = 'content';
+            showContentScreen(category);
+        }
+
+        // SEÇENEK TIKLANDIĞINDA
+        function onOptionClick(optionId) {
+            playClickSound();
+            menuHistory.push({ type: 'content', id: currentCategory });
+            showContentScreen(optionId);
+        }
+
+        // GERİ BUTONU
+        function goBack() {
+            stopSpeech();
+            playClickSound();
+            
+            setTimeout(() => {
+                if (menuHistory.length > 0) {
+                    const previous = menuHistory.pop();
+                    
+                    if (previous.type === 'menu') {
+                        showMenu('main');
+                    } else if (previous.type === 'content') {
+                        showContentScreen(previous.id);
+                    } else if (previous.type === 'product') {
+                        showProductSelection();
+                    } else if (previous.type === 'color') {
+                        showColorSelection();
+                    }
+                    
+                    setTimeout(() => {
+                        speakText("Yolculuğa nereden devam etmek istersiniz? Lütfen seçiminizi yapın.");
+                    }, 500);
+                    
+                } else {
+                    showMenu('main');
+                    setTimeout(() => {
+                        speakText("Yolculuğa nereden devam etmek istersiniz? Lütfen seçiminizi yapın.");
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        // ÜRÜN SEÇİMİNİ GÖSTER
+        function showProductSelection() {
+            playClickSound();
+            menuHistory.push({ type: 'content', id: currentCategory });
+            
+            const contentText = document.getElementById('contentText');
+            const contentOptions = document.getElementById('contentOptions');
+            const productButton = document.getElementById('productButton');
+            const contactButtons = document.getElementById('contactButtons');
+            
+            contentText.textContent = "Ürün seçimi ekranı. Hangi ürünü seçmek istiyorsunuz?";
+            
+            contentOptions.innerHTML = '';
+            products.forEach(product => {
+                const button = document.createElement('button');
+                button.className = 'content-option';
+                button.textContent = product.text;
+                button.onclick = () => onProductSelect(product);
+                contentOptions.appendChild(button);
+            });
+            
+            productButton.style.display = 'none';
+            contactButtons.style.display = 'none';
+            
+            setTimeout(() => {
+                speakText("Ürün seçimi ekranı. Hangi ürünü seçmek istiyorsunuz?");
+            }, 500);
+        }
+
+        // ÜRÜN SEÇİLDİĞİNDE
+        function onProductSelect(product) {
+            playClickSound();
+            selectedProduct = product;
+            menuHistory.push({ type: 'product' });
+            showColorSelection();
+        }
+
+        // RENK SEÇİMİNİ GÖSTER
+        function showColorSelection() {
+            let colors = [];
+            let colorType = '';
+            
+            // Hangi renk setini kullanacağımızı belirle
+            if (currentCategory.includes('mat') || 
+                currentCategory === 'düz-lake' || 
+                currentCategory === 'klapalı-lake' || 
+                currentCategory === 'cnc-işlemeli' ||
+                currentCategory.includes('mat-kapak') ||
+                currentCategory.includes('düz-lake-kapak') ||
+                currentCategory.includes('klapalı-lake-kapak') ||
+                currentCategory.includes('cnc-işlemeli-kapak')) {
+                colors = matColors;
+                colorType = 'mat';
+            } else if (currentCategory.includes('parlak') || 
+                      currentCategory === 'akrilik' ||
+                      currentCategory === 'parlak-düz-lake' ||
+                      currentCategory === 'parlak-klapalı-lake' || 
+                      currentCategory === 'parlak-cnc-işlemeli' ||
+                      currentCategory.includes('parlak-kapak') ||
+                      currentCategory.includes('akrilik-kapak') ||
+                      currentCategory.includes('parlak-düz-lake-kapak') ||
+                      currentCategory.includes('parlak-klapalı-lake-kapak') ||
+                      currentCategory.includes('parlak-cnc-işlemeli-kapak')) {
+                colors = parlakColors;
+                colorType = 'parlak';
+            } else if (currentCategory === 'düz-mdf-lam' || currentCategory === 'düz-mdf-lam-kapak') {
+                colors = mdfLamColors;
+                colorType = 'mdf-lam';
+            } else if (currentCategory === 'lak-panel' || currentCategory === 'lak-panel-kapak') {
+                colors = lakPanelColors;
+                colorType = 'lak-panel';
+            } else if (currentCategory === 'aluminyum-cerceve-kapak') {
+                colors = aluminyumColors;
+                colorType = 'aluminyum';
+            }
+            
+            const contentText = document.getElementById('contentText');
+            const contentOptions = document.getElementById('contentOptions');
+            const productButton = document.getElementById('productButton');
+            const contactButtons = document.getElementById('contactButtons');
+            
+            contentText.textContent = `Neredeyse sona yaklaştık.Size bu senenin trend renklerinden bir kolaj hazırladım.İsterseniz aşağıdaki sekmelere tıklayarak oluşturduğum görsellere göz atabilirsiniz.Eğer hayalini kurduğunuz renk kombinasyonunu bulamadıysanız dert etmeyin.Mimarlarımız size yardımcı olacaktır.Devam etmek için lütfen birini tercih yapın`;
+            
+            contentOptions.innerHTML = '';
+            colors.forEach(color => {
+                const button = document.createElement('button');
+                button.className = 'content-option';
+                button.textContent = color.text;
+                button.onclick = () => onColorSelect(color);
+                contentOptions.appendChild(button);
+            });
+            
+            productButton.style.display = 'none';
+            contactButtons.style.display = 'none';
+            
+            setTimeout(() => {
+                speakText(`Neredeyse sona yaklaştık.Size bu senenin trend renklerinden bir kolaj hazırladım.İsterseniz aşağıdaki sekmelere tıklayarak oluşturduğum görsellere göz atabilirsiniz.Eğer hayalini kurduğunuz renk kombinasyonunu bulamadıysanız dert etmeyin.Mimarlarımız size yardımcı olacaktır.Devam etmek için lütfen birini tercih yapın`);
+            }, 500);
+        }
+
+        // RENK SEÇİLDİĞİNDE
+        function onColorSelect(color) {
+            playClickSound();
+            updateWhatsAppMessage(selectedProduct, color);
+            
+            const contentText = document.getElementById('contentText');
+            const contentOptions = document.getElementById('contentOptions');
+            const productButton = document.getElementById('productButton');
+            const contactButtons = document.getElementById('contactButtons');
+            
+            contentText.innerHTML = `
+                <h2>🎉 TEBRİKLER!</h2>
+                <p><strong>Seçiminiz Tamamlandı:</strong></p>
+                <p><strong>Ürün:</strong> ${selectedProduct.text}</p>
+                <p><strong>Renk:</strong> ${color.text}</p>
+                <p><strong>Açıklama:</strong> ${color.desc}</p>
+                <p style="margin-top: 20px; font-weight: bold;">Mimarımızla iletişime geçmek için aşağıdaki butonlardan birini seçin:</p>
+            `;
+            
+            contentOptions.innerHTML = '';
+            productButton.style.display = 'none';
+            contactButtons.style.display = 'flex';
+            
+            setTimeout(() => {
+                speakText(`Tebrikler! ${selectedProduct.text} ürünü için ${color.text} rengini seçtiniz. ${color.desc} Mimarımızla iletişime geçmek için iletişim butonlarını kullanabilirsiniz.`);
+            }, 500);
+        }
+
+        // SİSTEMİ AKTİVE ET
+        function activateSystem() {
+            const activateBtn = document.getElementById('activateBtn');
+            activateBtn.style.display = 'none';
+            
+            const letterContainer = document.getElementById('letterContainer');
+            const handwritingContainer = document.getElementById('handwritingContainer');
+            
+            const letters = letterContainer.querySelectorAll('.letter');
+            letters.forEach(letter => {
+                const mask = document.createElement('div');
+                mask.className = 'text-mask';
+                mask.style.animationDelay = '0s';
+                letter.style.position = 'relative';
+                letter.style.overflow = 'hidden';
+                letter.appendChild(mask);
+            });
+            
+            const handwritingChars = handwritingContainer.querySelectorAll('.handwriting-char');
+            handwritingChars.forEach(char => {
+                const mask = document.createElement('div');
+                mask.className = 'text-mask';
+                mask.style.animationDelay = '0s';
+                char.style.position = 'relative';
+                char.style.overflow = 'hidden';
+                char.appendChild(mask);
+            });
+            
+            const screenDivider = document.getElementById('screenDivider');
+            const whiteSide = document.getElementById('whiteSide');
+            
+            screenDivider.classList.add('active');
+            whiteSide.classList.add('active');
+            
+            if (!audioContext) {
+                initAudio();
+            }
+            
+            setTimeout(() => {
+                playClickSound();
+            }, 300);
+            
+            setTimeout(() => {
+                letterContainer.classList.add('fade-out');
+                handwritingContainer.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    letterContainer.style.display = 'none';
+                    handwritingContainer.style.display = 'none';
+                    
+                    showAudioEffect();
+                    
+                    setTimeout(() => {
+                        const firstSpeech = "Merhaba. Ben Usta EYAY. Yapay zeka destekli içerik kütüphaneciniz olarak sizi mobilyanın en temel bileşenlerinden başlayıp en ince detaylarına uzanan bir yolculuğa davet ediyorum. Burada her seçim her bilgi ve her detay doğru tercihler yapmanız için hazırlanmış bir rehber olacak. Hazırsanız temel bileşenlere geçelim.";
+                        
+                        setTimeout(() => {
+                            const skipIntroBtn = document.getElementById('skipIntroBtn');
+                            skipIntroBtn.classList.add('show');
+                        }, 1000);
+                        
+                        speakText(firstSpeech).then(() => {
+                            if (!introSkipped) {
+                                setTimeout(() => {
+                                    moveAudioToTopRight();
+                                    showMenu('main');
+                                    
+                                    const menuBoxes = document.querySelectorAll('#mainMenuContainer .menu-box');
+                                    menuBoxes.forEach(box => {
+                                        box.addEventListener('click', function() {
+                                            const category = this.getAttribute('data-category');
+                                            onCategoryClick(category);
+                                        });
+                                    });
+                                    
+                                    setTimeout(() => {
+                                        const secondSpeech = "Ana bileşenleri sizler için derledik. Dilerseniz en temel parça gövde ile başlayalım. Hazırsanız devam etmek için kutucuklardan birini seçin!";
+                                        speakText(secondSpeech);
+                                    }, 500);
+                                    
+                                }, 500);
+                            }
+                        });
+                        
+                    }, 500);
+                    
+                }, 500);
+                
+            }, 2000);
+        }
+
+        function createLetterAnimation() {
+            const letters = ['U', 'S', 'T', 'A', ' ', 'A', 'I'];
+            const container = document.getElementById('letterContainer');
+            
+            letters.forEach((letter, index) => {
+                if (letter === ' ') {
+                    const space = document.createElement('div');
+                    space.className = 'space';
+                    container.appendChild(space);
+                } else {
+                    const span = document.createElement('span');
+                    span.className = 'letter';
+                    span.textContent = letter;
+                    span.style.animationDelay = `${index * 0.15}s`;
+                    container.appendChild(span);
+                }
+            });
+        }
+
+        // EL YAZISI HARFLERİNİ TEK TEK OLUŞTUR
+        function createHandwritingText() {
+            const text = "Dijital İçerik Kütüphaneniz";
+            const container = document.getElementById('handwritingContainer');
+            
+            for (let i = 0; i < text.length; i++) {
+                const charSpan = document.createElement('span');
+                charSpan.className = 'handwriting-char';
+                charSpan.textContent = text[i];
+                charSpan.style.animationDelay = `${3 + (i * 0.1)}s`;
+                
+                if (text[i] === ' ') {
+                    charSpan.style.margin = '0 8px';
+                }
+                
+                container.appendChild(charSpan);
+            }
+        }
+
+        // Sayfa yüklendiğinde animasyonları başlat ve ses sistemini hazırla
+        window.addEventListener('load', function() {
+            createLetterAnimation();
+            createHandwritingText();
+            initAudio();
+        });
+
+        // Sayfa kapanırken veya yenilenirken sesi durdur
+        window.addEventListener('beforeunload', handlePageUnload);
+        window.addEventListener('unload', handlePageUnload);
+        window.addEventListener('pagehide', handlePageUnload);
+
+        function handlePageUnload() {
+            stopSpeech();
+        }
+
+    </script>
+</body>
+</html>

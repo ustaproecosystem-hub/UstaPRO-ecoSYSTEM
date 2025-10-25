@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USTA VİZYON</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 15px 10px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 100%;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px 15px;
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .main-title {
+            font-size: 2em;
+            background: linear-gradient(135deg, #00bcd4 0%, #007c91 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .vision-statement {
+            color: #ccc;
+            font-size: 1.1em;
+            line-height: 1.5;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .vision-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .vision-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border: 1px solid rgba(0, 188, 212, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .vision-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .vision-card:hover::before {
+            left: 100%;
+        }
+        
+        .vision-card:hover {
+            transform: translateY(-5px);
+            border-color: #00bcd4;
+            box-shadow: 0 8px 25px rgba(0, 188, 212, 0.2);
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #00bcd4;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .card-desc {
+            color: #e0e0e0;
+            font-size: 0.95em;
+            line-height: 1.5;
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .discover-btn {
+            background: linear-gradient(135deg, #00bcd4, #007c91);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+            display: block;
+        }
+        
+        .discover-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Modal Stilleri */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border: 2px solid #00bcd4;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 188, 212, 0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-title {
+            color: #00bcd4;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-body {
+            color: #e0e0e0;
+            line-height: 1.7;
+            font-size: 1em;
+        }
+
+        .modal-body h3 {
+            color: #00bcd4;
+            margin: 25px 0 15px 0;
+            font-size: 1.3em;
+        }
+
+        .modal-body ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .modal-body li {
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #00bcd4, #007c91);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: inline-block;
+        }
+
+        /* Mobil Optimizasyon */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px 8px;
+            }
+            
+            .container {
+                padding: 15px 12px;
+                border-radius: 15px;
+            }
+            
+            .main-title {
+                font-size: 1.7em;
+            }
+            
+            .vision-statement {
+                font-size: 1em;
+            }
+            
+            .vision-card {
+                padding: 15px;
+            }
+            
+            .card-title {
+                font-size: 1.1em;
+            }
+            
+            .card-desc {
+                font-size: 0.9em;
+                min-height: 50px;
+            }
+            
+            .discover-btn {
+                padding: 10px 20px;
+                font-size: 0.85em;
+            }
+
+            .modal-content {
+                padding: 20px;
+                max-width: 95%;
+            }
+
+            .modal-title {
+                font-size: 1.5em;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .container {
+                padding: 12px 10px;
+            }
+            
+            .main-title {
+                font-size: 1.5em;
+            }
+            
+            .vision-card {
+                padding: 12px;
+            }
+            
+            .card-desc {
+                min-height: 45px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            body {
+                padding: 8px 5px;
+            }
+            
+            .vision-grid {
+                gap: 10px;
+            }
+            
+            .vision-card {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">USTA VİZYON</h1>
+            <div class="vision-statement">
+                "Yenilik ve Süreklilik"
+            </div>
+        </div>
+
+        <div class="vision-grid">
+            <div class="vision-card" onclick="openModal('mobilya-hikayesi')">
+                <div class="card-title">Mobilyanızın Doğum Belgesi</div>
+                <div class="card-desc">
+                    Her mobilyamızın arkasında gizli bir hikaye ve ona özel numaralı kimlik sizi bekliyor
+                </div>
+                <button class="discover-btn" onclick="event.stopPropagation(); openModal('mobilya-hikayesi')">
+                    Detayları Keşfet
+                </button>
+            </div>
+            
+            <div class="vision-card" onclick="openModal('referans-programi')">
+                <div class="card-title">Referans Elçisi</div>
+                <div class="card-desc">
+                    Sadakatınızın karşılığını göreceğiniz, sadece seçilmiş misafirlerimize özel bir program
+                </div>
+                <button class="discover-btn" onclick="event.stopPropagation(); openModal('referans-programi')">
+                    Detayları Keşfet
+                </button>
+            </div>
+            
+            <div class="vision-card" onclick="openModal('dijital-kimlik')">
+                <div class="card-title">Dijital Mobilya Kimliği</div>
+                <div class="card-desc">
+                    Mobilyanızla ilgili tüm bilgilere anında ulaşabileceğiniz teknolojik bir çözüm
+                </div>
+                <button class="discover-btn" onclick="event.stopPropagation(); openModal('dijital-kimlik')">
+                    Detayları Keşfet
+                </button>
+            </div>
+            
+            <div class="vision-card" onclick="openModal('yildonumu')">
+                <div class="card-title">Yıldönümü Hatırlatması</div>
+                <div class="card-desc">
+                    Mobilyanızın evinizdeki ilk gününden itibaren sürprizlerle dolu bir yolculuk
+                </div>
+                <button class="discover-btn" onclick="event.stopPropagation(); openModal('yildonumu')">
+                    Detayları Keşfet
+                </button>
+            </div>
+            
+            <div class="vision-card" onclick="openModal('usta-imzasi')">
+                <div class="card-title">Ustaların Elinden Not</div>
+                <div class="card-desc">
+                    Mobilyanızı yapan ellerin size bıraktığı samimi bir dokunuş ve teşekkür
+                </div>
+                <button class="discover-btn" onclick="event.stopPropagation(); openModal('usta-imzasi')">
+                    Detayları Keşfet
+                </button>
+            </div>
+            
+            <div class="vision-card" onclick="openModal('keyif-surprizi')">
+                <div class="card-title">Keyif Sürprizi</div>
+                <div class="card-desc">
+                    Yeni mobilyanızın evinize gelişini kutlamak için hazırlanmış özel bir hoş geldin hediyesi
+                </div>
+                <button class="discover-btn" onclick="event.stopPropagation(); openModal('keyif-surprizi')">
+                    Detayları Keşfet
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🚀 Kalitemiz değişmez, vizyonumuz genişler</p>
+            <p>📍 USTA - Geçmişten Geleceğe Kalite</p>
+        </div>
+    </div>
+
+    <!-- Modal Yapısı -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">✕</button>
+            <div id="modalTitle" class="modal-title"></div>
+            <div id="modalBody" class="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // Modal içerikleri
+        const modalContents = {
+            'mobilya-hikayesi': {
+                title: 'MOBİLYANIN DOĞUM SERÜVENİ',
+                content: `
+                    <p><strong>"Sevgili Usta Ahşap Ailesi,"</strong></p>
+                    <p>Sizin için özel olarak hazırladığımız bu mobilya, sıradan bir üretim sürecinden geçmedi. O, bir serüvenin parçası oldu.</p>
+
+                    <h3>🌳 İLK TOHUM: AĞACIN HİKAYESİ</h3>
+                    <p>Mobilyanızın hikayesi, 1.kalite malzemelerden seçilmiş bu ana iskelet elemanları, sadece bir malzeme değil; doğanın size sunduğu bir armağandır.</p>
+
+                    <h3>👐 USTALARIN DOKUNUŞU: SANATIN İZİ</h3>
+                    <p>Bu malzemeye hayat veren ustalarımız, sadece mobilya yapmadı. Onlar, her bir parçaya kendi deneyimlerinden, hayallerinden ve sevgilerinden bir şeyler kattı. Osman usta 30 yıllık tecrübesi, Mehmet Usta'nın detaylara olan tutkusu ve Kübra Hanım'ın tasarım vizyonu - hepsi bu mobilyada buluştu.</p>
+
+                    <h3>🔨 ÜRETİM SÜRECİ: SABIR ve ÖZEN</h3>
+                    <p>Üretim atölyemizde geçen her dakika, mobilyanızın mükemmelleşme yolculuğuydu. Kesim aşamasındaki milimetrik hesaplar, birleştirme sırasındaki titizlik, cilalama esnasındaki sonsuz sabır... Tüm bunlar, sizin için 'yeterince iyi' değil, 'en iyisi' olsun diye yapıldı.</p>
+
+                    <h3>📜 SERTİFİKA: HİKAYENİN BELGESİ</h3>
+                    <p>İşte elinizde tuttuğunuz bu sertifika, tüm bu serüvenin yazılı kanıtı. Burada gördüğünüz her bilgi, mobilyanızın kimliğinin bir parçası:</p>
+                    <ul>
+                        <li><strong>Seri Numarası:</strong> USTA-2024-0158 (Bu mobilya, bizim için 158. özel eser)</li>
+                        <li><strong>Üretim Tarihi:</strong> 06 Aralık 2024 (Doğum günü kutlu olsun!)</li>
+                        <li><strong>Malzeme Detayları:</strong> %100 doğal meşe, ekolojik cila, el işçiliği</li>
+                        <li><strong>Usta Ekibi:</strong> Osman Usta (Baş tasarım Danışmanı), Mehmet Usta (İmalat ve Montaj Sorumlusu), Kübra Hanım (Tasarım ve Danışmanlık Hizmetleri)</li>
+                    </ul>
+
+                    <div class="highlight">💫 SON SÖZ:</div>
+                    <p>Bu mobilya artık sadece bir eşya değil. O, ustalarımızın emeği, doğanın güzelliği ve sizin zevkinizin buluştuğu bir sanat eseri. Ona iyi bakın, çünkü o da size iyi bakacak.</p>
+                    <p>Biz, Usta Ahşap ailesi olarak, bu özel eseri sizinle buluşturduğumuz için gurur duyuyoruz.</p>
+                    <p><strong>Saygılarımızla,<br>Usta Ahşap Ekibi</strong></p>
+                `
+            },
+            'referans-programi': {
+                title: 'REFERANS ELÇİSİ PROGRAMI',
+                content: `
+                    <p><strong>"Sevgili Usta Ahşap Ailesinin Seçilmiş Üyesi,"</strong></p>
+
+                    <h3>ELÇİ STATÜSÜNE HOŞ GELDİNİZ</h3>
+                    <p>Bu program, sıradan bir 'referans programı' değil. Bu, sizin gibi değerli müşterilerimizle kurduğumuz özel bir bağ. Bir aile büyüğü gibi, bizi tanıdıklarınıza anlatmanız ve onların da bu kaliteyle tanışmasını sağlamanız için tasarlandı.</p>
+
+                    <h3>ELÇİLİK AYRICALIKLARI</h3>
+                    
+                    <h4>🎯 BRONZ ELÇİ (1 Referans)</h4>
+                    <ul>
+                        <li>Anında 500 TL Hediye Çeki</li>
+                    </ul>
+
+                    <h4>💎 GÜMÜŞ ELÇİ (3 Referans)</h4>
+                    <ul>
+                        <li>Referanslarınıza özel %1 elçilik hakkı</li>
+                        <li>Ücretsiz Ev İçi Tasarım Danışmanlığı</li>
+                    </ul>
+
+                    <h4>👑 ALTIN ELÇİ (5+ Referans)</h4>
+                    <ul>
+                        <li>Referanslarınıza özel %1 elçilik hakkı</li>
+                        <li>Ücretsiz Ev İçi Tasarım Danışmanlığı</li>
+                        <li>Kişiye Özel Mobilya Tasarımı (Ücretsiz)</li>
+                        <li>Yıllık Ücretsiz Bakım ve Cila Yenileme</li>
+                        <li>Doğum Gününüzde Özel Hediye</li>
+                    </ul>
+
+                    <h3>🚀 NASIL ELÇİ OLACAKSINIZ?</h3>
+                    <ol>
+                        <li>Bizden aldığınız ürünleri sevdiklerinize gösterin</li>
+                        <li>Onları bize yönlendirin - isimlerini bize iletin</li>
+                        <li>Onlar alışveriş yaptığında - sizin ödülleriniz otomatik olarak hazır!</li>
+                    </ol>
+
+                    <h3>💫 NEDEN BUNU YAPIYORUZ?</h3>
+                    <p>Çünkü biz biliyoruz ki:</p>
+                    <ul>
+                        <li>Sizin tavsiyeniz, binlerce reklamdan daha değerli</li>
+                        <li>Güveniniz, bizim için en büyük motivasyon</li>
+                        <li>Kaliteyi sevenler, birbirini bulmalı</li>
+                    </ul>
+
+                    <h3>🌟 ELÇİLERİMİZ NE DİYOR?</h3>
+                    <p><em>'Artık sadece mobilya almadığımı, bir aileye dahil olduğumu hissediyorum. Her referans verdiğim arkadaşım, bana teşekkür ediyor!'</em> - Ayşe Hanım, Altın Elçi</p>
+                    <p><em>'Usta Ahşap'ta müşteri olmak değil, değerli hissetmek var. Elçi programı beni gerçekten özel kılıyor.'</em> - Mehmet Bey, Gümüş Elçi</p>
+
+                    <div class="highlight">🎯 SON SÖZ</div>
+                    <p>Siz zaten ailemizin bir parçasısınız. Şimdi, bu aileyi büyütme ve hem kazanma hem de başkalarının hayatına kalite katma şansına sahipsiniz.</p>
+                    <p><strong>Elçi olun, fark yaratın, kazanın!</strong></p>
+                    <p><strong>Saygılarımızla,<br>Usta Ahşap Ailesi</strong></p>
+                `
+            },
+            'dijital-kimlik': {
+                title: 'DİJİTAL MOBİLYA KİMLİĞİ',
+                content: `
+                    <p><strong>"Sevgili Teknoloji ve Kalite Dostu,"</strong></p>
+                    <p>Mobilyanız artık sadece ahşaptan ibaret değil. O, akıllı, konuşan ve sizinle iletişim kuran bir aile üyesi. İşte bu yüzden, her Usta Ahşap ürününü Dijital Kimlik ile donattık.</p>
+
+                    <h3>📱 MOBİLYANIZ CANLANIYOR!</h3>
+                    <p>Ürününüzün içinde bulunan QR kod, mobilyanızın dijital kalbi. Onu okuttuğunuz anda, mobilyanız size şunu fısıldayacak: 'Merhaba, ben buradayım ve her zaman yanındayım!'</p>
+
+                    <h3>🔧 DİJİTAL DÜNYADA NELER VAR?</h3>
+                    
+                    <h4>AKILLI BAKIM MERKEZİ</h4>
+                    <ul>
+                        <li><strong>Canlı Bakım Videoları:</strong> 'Şu lekeyi nasıl çıkarırım?' → Cevap: 10 saniyede!</li>
+                        <li><strong>Kişiselleştirilmiş Temizlik Programı:</strong> Mobilyanıza özel haftalık, aylık, yıllık bakım takvimi</li>
+                        <li><strong>Anlık Sorun Çözümü:</strong> Çizik mi oldu? Hemen tıkla, çözümü gör!</li>
+                    </ul>
+
+                    <h3>🌈 NASIL ÇALIŞIYOR?</h3>
+                    <ol>
+                        <li>Telefonunuzu yaklaştırın → QR/NFC'yi okutun</li>
+                        <li>Özel sayfamız açılsın → Mobilyanızın dijital dünyasına hoş geldiniz!</li>
+                        <li>İhtiyacınız olan her şey → Tek ekranda, sade ve hızlı!</li>
+                    </ol>
+
+                    <h3>💫 NEDEN BUNU YAPIYORUZ?</h3>
+                    <p>Çünkü biz biliyoruz ki:</p>
+                    <ul>
+                        <li>Mobilya satışı bitmez, ilişki başlar</li>
+                        <li>Teknoloji, hayatı kolaylaştırmalı</li>
+                        <li>Sizin zamanınız en değerli hazineniz</li>
+                    </ul>
+
+                    <h3>🎁 SÜRPRİZ ÖZELLİKLER</h3>
+                    <ul>
+                        <li><strong>Doğum Günü Hatırlatması:</strong> Mobilyanızın evinize geliş yıldönümünde özel mesaj!</li>
+                        <li><strong>Mevsimsel Bakım İpuçları:</strong> 'Kış geldi, mobilyanızı nasıl korumalısınız?'</li>
+                    </ul>
+
+                    <div class="highlight">🚀 SON SÖZ</div>
+                    <p>Bu QR kod, sadece bir barkod değil. O, sizinle mobilyanız arasında kurduğumuz dijital köprü. Bir ailenin albümü gibi, mobilyanızın tüm hikayesi burada.</p>
+                    <p><strong>Teknoloji dokunsun, kalite konuşsun!</strong></p>
+                    <p><strong>Saygılarımızla,<br>Usta Ahşap Teknoloji Ekibi</strong></p>
+                `
+            },
+            'yildonumu': {
+                title: 'YILDÖNÜMÜ HATIRLATMASI',
+                content: `
+                    <p><strong>"Sevgili Ailemizin Değerli Üyesi,"</strong></p>
+                    <p>Bugün çok özel bir gün! Tam 1 yıl önce, mobilyanız evinize ilk adımını attı ve sizin hayatınızın bir parçası oldu. Biz bu özel günü asla unutmadık ve şimdi kutlamak için buradayız!</p>
+
+                    <h3>🎉 DOĞUM GÜNÜN KUTLU OLSUN!</h3>
+                    <p>Evet, yanlış duymadınız! Mobilyanızın evinizdeki 1. yaş gününü kutluyoruz. Çünkü bizim için her mobilya, doğduğu günden itibaren özel bir varlık ve onun her yıldönümü kutlanmayı hak ediyor.</p>
+
+                    <h3>🔧 ÜCRETSİZ BAKIM KONTROLÜ</h3>
+                    <ul>
+                        <li>Evinizde profesyonel bakım kontrolü</li>
+                        <li>Cila yenileme ve küçük ayarlar</li>
+                        <li>Temizlik önerileri ve bakım ipuçları</li>
+                    </ul>
+
+                    <h3>📞 ÖZEL DANIŞMANLIK</h3>
+                    <ul>
+                        <li>Kişisel dekorasyon danışmanlığı</li>
+                        <li>Yeni mobilya uyum önerileri</li>
+                        <li>Evinize özel tasarım fikirleri</li>
+                    </ul>
+
+                    <h3>💫 MOBİLYANIZIN 1 YILLIK SAĞLIK KARNESİ</h3>
+                    <p>'Mobilyanız nasıl?' diye merak mı ediyorsunuz? İşte size özel sağlık raporu:</p>
+                    <ul>
+                        <li>🥇 <strong>GENEL DURUM:</strong> Mükemmel!</li>
+                        <li>🛠️ <strong>BAKIM İHTİYACI:</strong> Minimal</li>
+                        <li>✨ <strong>GÖRÜNÜM:</strong> İlk günkü gibi genç!</li>
+                        <li>💝 <strong>TAVSİYEMİZ:</strong> Bu kaliteyi korumaya devam edin!</li>
+                    </ul>
+
+                    <h3>🌈 BİRLİKTE GEÇEN 1 YILIN HİKAYESİ</h3>
+                    <p>Bu mobilya, tam 1 yıldır:</p>
+                    <ul>
+                        <li>Aile sohbetlerinize eşlik etti</li>
+                        <li>Misafirlerinizi ağırladı</li>
+                        <li>Özel anlarınıza tanıklık etti</li>
+                        <li>Evininizin ruhuna katkıda bulundu</li>
+                    </ul>
+
+                    <h3>🚀 ÖZEL TEKLİF: YENİ BİR AİLE ÜYESİ DAHA!</h3>
+                    <p>'Belki de şimdi, bu mobilyaya bir kardeş getirme zamanı?' diye düşünüyor olabilirsiniz. İşte size özel fırsat:</p>
+
+                    <h4>🎯 ÇİFTE KUTLAMA PAKETİ</h4>
+                    <ul>
+                        <li>Mevcut indiriminize ek %10 indirim</li>
+                        <li>Ücretsiz montaj ve teslimat</li>
+                        <li>Hediye paketi ile yeni mobilyanız</li>
+                    </ul>
+
+                    <h3>💝 SİZİN İÇİN KÜÇÜK BİR ANKET</h3>
+                    <p>1 dakikanızı ayırıp mobilyanızın 1 yıllık performansını değerlendirir misiniz? Bu bize daha iyi hizmet vermemiz için yol gösterecek.</p>
+
+                    <h3>🎊 KUTLAMA VAKTİ!</h3>
+                    <p>Bugün, mobilyanızın doğum gününü kutlayın! Belki:</p>
+                    <ul>
+                        <li>Yanında bir fincan kahve içerek</li>
+                        <li>Ona özel bir temizlik yaparak</li>
+                        <li>Ailenizle bu özel günün hatırasını paylaşarak</li>
+                    </ul>
+
+                    <h3>💫 NEDEN BUNU YAPIYORUZ?</h3>
+                    <p>Çünkü inanıyoruz ki:</p>
+                    <ul>
+                        <li>Satış bitmez, dostluk başlar</li>
+                        <li>Mobilya cansız değildir, ruha sahiptir</li>
+                        <li>Sizin mutluluğunuz, bizim en büyük ödülümüz</li>
+                    </ul>
+
+                    <h3>🌟 MÜŞTERİLERİMİZ NE DİYOR?</h3>
+                    <p><em>'1 yıl sonra bile beni hatırlamaları inanılmaz! Artık sadece mobilya değil, bir aile satın aldığımı biliyorum.'</em> - Mehmet Bey</p>
+                    <p><em>'Doğum günü hediyesiyle gelen indirim, yeni kanepe almak için mükemmel fırsat oldu!'</em> - Ayşe Hanım</p>
+
+                    <div class="highlight">🎯 SON SÖZ</div>
+                    <p>Bu mesaj, sadece bir 'hatırlatma' değil. Bu, sizinle kurduğumuz bağın canlı kanıtı. 1 yıl önce başlayan hikayemiz, nice yıllar boyunca devam etsin!</p>
+                    <p><strong>Nice 1 yıllara! Sağlık, mutluluk ve kalite dolu nice senelere!</strong></p>
+                    <p><strong>Sevgi ve saygılarımızla,<br>Usta Ahşap Ailesi</strong></p>
+                `
+            },
+            'usta-imzasi': {
+                title: 'USTALARIN İMZASI',
+                content: `
+                    <p><strong>"Sevgili Mobilya Sahibi,"</strong></p>
+                    <p>Bu küçük kartı bulduğunuzda, mobilyanızın en gizli sırrına ulaştınız demektir. Burası, ruhun mobilyaya işlendiği özel nokta. Sizin için hazırladığımız bu eserde emeği geçen ustalarımız, size kişisel bir mesaj bırakmak istedi.</p>
+
+                    <h3>👐 MOBİLYANIZA HAYAT VEREN ELLER</h3>
+
+                    <h4>🎨 AHMET USTA - OYMACI & TASARIMCI</h4>
+                    <p><em>"Sevgili [Müşteri İsmi],<br>
+                    Bu mobilyanın her kıvrımında, her oymasında sizin için düşündüm. 25 yıllık tecrübemle, bu parçanın sadece işlevsel değil, aynı zamanda ruha hitap etmesi için çalıştım. Umarım her baktığınızda, ona verdiğim emeği ve sevgiyi hissedersiniz.<br>
+                    <strong>İmza: Ahmet Yılmaz</strong>"</em></p>
+
+                    <h4>✨ MEHMET USTA - CİLACI & SON DOKUNUŞ</h4>
+                    <p><em>"Değerli Müşterimiz,<br>
+                    Ben bu mobilyanın cilacısı Mehmet. 15 yıldır, ahşabın doğal güzelliğini ortaya çıkarmak için çalışıyorum. Sizin için seçtiğimiz cila, sadece koruma sağlamakla kalmayıp, ağacın ruhunu da yansıtıyor. Umarım dokunduğunuzda, ahşabın sıcaklığını hissedersiniz.<br>
+                    <strong>İmza: Mehmet Kaya</strong>"</em></p>
+
+                    <h4>🔧 AYŞE HANIM - MONTAJ & KALİTE KONTROL</h4>
+                    <p><em>"Saygıdeğer Ailemiz,<br>
+                    Ben Ayşe, montaj ve kalite kontrol ekibinden. Bu mobilyanın evinize mükemmel şekilde uyum sağlaması için her vida, her birleşim noktasını özenle kontrol ettim. Amacım, sizin için sadece mobilya değil, güven inşa etmekti.<br>
+                    <strong>İmza: Ayşe Demir</strong>"</em></p>
+
+                    <h3>🌟 USTALARIMIZIN HİKAYESİ</h3>
+
+                    <h4>AHMET USTA: 25 YILLIK SANAT</h4>
+                    <ul>
+                        <li><strong>Uzmanlık:</strong> El oymacılığı ve geleneksel desenler</li>
+                        <li><strong>Felsefesi:</strong> "Ahşap konuşur, biz sadece onun dilini anlarız"</li>
+                        <li><strong>Özel Notu:</strong> Bu mobilyada kullandığı 'dalga' deseni, 3 nesildir aile geleneği</li>
+                    </ul>
+
+                    <h4>MEHMET USTA: CİLANIN ŞEFİ</h4>
+                    <ul>
+                        <li><strong>Uzmanlık:</strong> Doğal cilalar ve ahşap koruma</li>
+                        <li><strong>Felsefesi:</strong> "Cila, ahşabın makyajı değil, koruyucu meleğidir"</li>
+                        <li><strong>Özel Tekniği:</strong> 7 kat el cilalama - her kat 24 saat kuruma</li>
+                    </ul>
+
+                    <h4>AYŞE HANIM: MÜKEMMELLİYETÇİ</h4>
+                    <ul>
+                        <li><strong>Uzmanlık:</strong> Montaj ve son kontrol</li>
+                        <li><strong>Felsefesi:</strong> "Mobilya evinize girdiğinde, bizim imzamız orada olmalı"</li>
+                        <li><strong>Özel Detayı:</strong> Her mobilyayı kendi evine alacakmış gibi kontrol eder</li>
+                    </ul>
+
+                    <h3>💫 NEDEN BU KARTI GİZLİYORUZ?</h3>
+                    <p>Çünkü inanıyoruz ki:</p>
+                    <ul>
+                        <li>Gerçek değer, gözle görülmeyende saklıdır</li>
+                        <li>Sürpriz, mutluluğun en güzel halidir</li>
+                        <li>Kişisel dokunuş, ticari ilişkiyi dostluğa dönüştürür</li>
+                    </ul>
+
+                    <h3>🌈 BU KARTI BULDUĞUNUZDA</h3>
+                    <p>Lütfen:</p>
+                    <ol>
+                        <li>Gülümseyin - çünkü sizin için özel hazırlandı</li>
+                        <li>Ustalarımızı düşünün - onlar sizin için çalıştı</li>
+                        <li>Bize ulaşın - ustalarımızla tanışmak ister misiniz?</li>
+                    </ol>
+
+                    <h3>🎁 ÖZEL DAVET</h3>
+                    <p>Bu kartı bulduğunuzu bize bildirin, sizi atölyemize özel misafir olarak davet edelim. Ustalarımızla tanışın, onlarla kahve için, mobilyanızın yapım aşamalarını görün.</p>
+
+                    <div class="highlight">🎯 SON SÖZ</div>
+                    <p>Bu mobilya sadece ahşap, cila ve vidalardan oluşmuyor. Onda:</p>
+                    <ul>
+                        <li>Ahmet Usta'nın sabrı</li>
+                        <li>Mehmet Usta'nın inceliği</li>
+                        <li>Ayşe Hanım'ın titizliği</li>
+                        <li>Ve sizin için duyduğumuz saygı var</li>
+                    </ul>
+                    <p><strong>Ellerimizden çıkan her eser, gönlümüzden çıkan bir mektuptur.</strong></p>
+                    <p><strong>Saygı ve sevgiyle,<br>Usta Ahşap Zanaatkarları</strong></p>
+                `
+            },
+            'keyif-surprizi': {
+                title: 'KEYİF SÜRPRİZİ',
+                content: `
+                    <p><strong>"Sevgili Yeni Komşumuz,"</strong></p>
+                    <p>Mobilyanız artık evinizde yerini aldı ve biz de bu özel anı kutlamak için küçük bir sürprizle vedalaşmak istiyoruz. Çünkü inanıyoruz ki: Yeni bir mobilya, evinize yeni bir ruh getirir.</p>
+
+                    <h3>🎁 HOŞ GELDİN PAKETİNİZ HAZIR!</h3>
+                    <p>Mobilyanızın yanında bıraktığınız bu paket, sadece bir hediye değil. O, yeni başlangıcınızı kutlamak ve evinize sıcak bir dokunuş katmak için özenle hazırlandı.</p>
+
+                    <h3>📦 SÜRPRİZ PAKETİNİZİN İÇİNDEKİLER</h3>
+
+                    <h4>☕ EL YAPIMI KAHVE FİNCANLARI (2 Adet)</h4>
+                    <p><em>"Her yudumda kalitemizi hatırlayın"</em></p>
+                    <ul>
+                        <li>Yerel seramik atölyesinde özel üretim</li>
+                        <li>Ele geçirdiğinizde hissedilen doğal doku</li>
+                        <li>Sizin için seçilen özel renk tonları</li>
+                        <li>Usta imzasıyla - her biri benzersiz!</li>
+                    </ul>
+
+                    <h4>🕯️ ÖZEL TASARIM MUM & KOKU TAŞLARI</h4>
+                    <p><em>"Evinizin ruhunu aydınlatsın"</em></p>
+                    <ul>
+                        <li>Doğal balmumu ile el yapımı</li>
+                        <li>Ahşap-esanslı özel koku (meşe ve vanilya)</li>
+                        <li>Yanma süresi: 30 saat saf huzur</li>
+                        <li>Yeniden doldurulabilir - çevre dostu</li>
+                    </ul>
+
+                    <h4>🌿 DOĞAL AHŞAP BAKIM SETİ</h4>
+                    <p><em>"Mobilyanızın ömrünü uzatın"</em></p>
+                    <ul>
+                        <li>Bitkisel içerikli ahşap temizleyici</li>
+                        <li>Doğal yağ bazlı cilalı yüzey bakım spreyi</li>
+                        <li>Yumuşak mikrofiber temizlik bezi</li>
+                        <li>Kullanım kılavuzu - adım adım bakım</li>
+                    </ul>
+
+                    <h4>💝 KİŞİSEL TEŞEKKÜR KARTI</h4>
+                    <p><em>"Sizin için yazıldı"</em></p>
+                    <ul>
+                        <li>Elinizde tuttuğunuz gerçek bir mektup</li>
+                        <li>Ustaların el yazısıyla kişisel mesaj</li>
+                        <li>Özel tasarım - sadece size özel</li>
+                        <li>Hatıra olarak saklayabileceğiniz bir parça</li>
+                    </ul>
+
+                    <h3>💫 BU HEDİYELERİ NASIL KULLANMALISINIZ?</h3>
+
+                    <h4>🎯 MÜKEMMEL BİR İLK AKŞAM İÇİN:</h4>
+                    <ol>
+                        <li>Mobilyanızın yanına yerleşin</li>
+                        <li>Mumunuzu yakın - odayı ısıtan kokuyu hissedin</li>
+                        <li>Kahvenizi yapın - el yapımı fincanlarda keyfini çıkarın</li>
+                        <li>Yeni mobilyanızı seyredin - emeğin ve sevginin buluşmasını izleyin</li>
+                    </ol>
+
+                    <h3>🌈 NEDEN BU HEDİYELERİ SEÇTİK?</h3>
+                    <p>Çünkü biz biliyoruz ki:</p>
+                    <ul>
+                        <li>Kahve, sohbetleri güzelleştirir</li>
+                        <li>Mum, ortamı yumuşatır</li>
+                        <li>Bakım, sevginin devamıdır</li>
+                        <li>Teşekkür, samimiyetin göstergesidir</li>
+                    </ul>
+
+                    <h3>🎊 KUTLAMA VAKTİ!</h3>
+                    <p>Bu paketle birlikte size küçük bir önerimiz var:</p>
+
+                    <h4>🏡 EVİNİZİN YENİ RİTÜELİNİ OLUŞTURUN</h4>
+                    <ul>
+                        <li>Her sabah kahvenizi bu fincanlarda için</li>
+                        <li>Her akşam mumunuzu yakarak günü uğurlayın</li>
+                        <li>Her hafta mobilyanızı özenle temizleyin</li>
+                    </ul>
+
+                    <h3>📖 HEDİYELERİMİZİN HİKAYESİ</h3>
+
+                    <h4>KAHVE FİNCANLARI:</h4>
+                    <p>Yerel bir seramik atölyesinde, emekli öğretmen Zeynep Hanım tarafından özel olarak şekillendirildi. Her biri 3 günlük el emeği.</p>
+
+                    <h4>MUMLAR:</h4>
+                    <p>Doğal balmumu, Ege'deki arıcılık kooperatifinden. Kokular, aromaterapi uzmanı eşliğinde seçildi.</p>
+
+                    <h4>BAKIM SETİ:</h4>
+                    <p>Bitkisel içerikler, Anadolu'nun şifalı bitkilerinden. Çevre dostu formül.</p>
+
+                    <h3>🎯 BİZE BİR SÜRPRİZ YAPIN!</h3>
+                    <p>Bu hediyelerle çektiğiniz bir fotoğrafı bize gönderin, sizi özel müşteriler albümümüze ekleyelim. Belki de bir sonraki kataloğumuzun kapağında sizin eviniz yer alır!</p>
+
+                    <div class="highlight">💝 SON SÖZ</div>
+                    <p>Bu küçük paketle şunu demek istiyoruz:</p>
+                    <ul>
+                        <li>İşimiz bitti, ama ilişkimiz yeni başlıyor</li>
+                        <li>Mobilya teslim edildi, ama hizmet asla bitmez</li>
+                        <li>Siz değerlisiniz, ve bunu asla unutmayacağız</li>
+                    </ul>
+                    <p><strong>Yeni mobilyanızla nice keyifli anlara, sıcak sohbetlere ve unutulmaz hatıralara!</strong></p>
+                    <p><strong>İçten dileklerimizle,<br>Usta Ahşap Ailesi</strong></p>
+                `
+            }
+        };
+
+        // Modal fonksiyonları
+        function openModal(modalType) {
+            const content = modalContents[modalType];
+            if (content) {
+                document.getElementById('modalTitle').innerHTML = content.title;
+                document.getElementById('modalBody').innerHTML = content.content;
+                document.getElementById('modalOverlay').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // ESC tuşu ile kapatma
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Modal dışına tıklayınca kapatma
+        document.getElementById('modalOverlay').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal();
+            }
+        });
+
+        // Otomatik mobil optimizasyon
+        function optimizeLayout() {
+            const container = document.querySelector('.container');
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            
+            if (screenWidth < 400) {
+                container.style.padding = '12px 10px';
+            }
+            
+            if (screenWidth < 350) {
+                container.style.padding = '10px 8px';
+            }
+            
+            if (screenHeight < 600) {
+                document.body.style.padding = '5px';
+            }
+        }
+        
+        window.addEventListener('load', optimizeLayout);
+        window.addEventListener('resize', optimizeLayout);
+        
+        // Butonlara tıklama efekti
+        document.querySelectorAll('.discover-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+    </script>
+</body>
+</html>

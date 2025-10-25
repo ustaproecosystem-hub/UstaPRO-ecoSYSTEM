@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UstaPRO EcoSYSTEM</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .main-title {
+            font-size: 2em;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        .module {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .module:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-5px);
+        }
+        .module h3 {
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        .module p {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">UstaPRO EcoSYSTEM</h1>
+        </div>
+        
+        <div class="grid">
+            <div class="module" onclick="openModule('fiyatla')">
+                <h3>USTA FİYATLAMA</h3>
+                <p>Ürün ve Aksesuarlarla Tahmini Fiyat Belirleme</p>
+            </div>
+            
+            <div class="module" onclick="openModule('rehber')">
+                <h3>USTA REHBER</h3>
+                <p>Tüm Bileşenler Hakkında Detaylı Bilgi Platformu</p>
+            </div>
+            
+            <div class="module" onclick="openModule('3D')">
+                <h3>USTA 3D</h3>
+                <p>Artırılmış Gerçeklik Demo Tanıtım Platformu</p>
+            </div>
+            
+            <div class="module" onclick="openModule('sosyal')">
+                <h3>USTA SOSYAL</h3>
+                <p>Sosyal Medya Ağları Platformu</p>
+            </div>
+            
+            <div class="module" onclick="openModule('asistan')">
+                <h3>USTA ASİSTAN</h3>
+                <p>Siparişlerin Anlık Takip Edilebileceği Asistan Platformu</p>
+            </div>
+            
+            <div class="module" onclick="openModule('aı')">
+                <h3>USTA AI</h3>
+                <p>Yapay Zeka Destekli Akıllı Asistan Platformu</p>
+            </div>
+            
+            <div class="module" onclick="openModule('vizyon')">
+                <h3>USTA VİZYON</h3>
+                <p>Satış Sonrası Hizmetlerin Sunulduğu Platform</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModule(moduleName) {
+            window.open(moduleName + '.html', '_blank', 'width=400,height=600');
+        }
+    </script>
+</body>
+</html>
